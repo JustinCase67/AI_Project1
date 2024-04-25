@@ -88,8 +88,31 @@ class FeatureExtractor:
         bottom, right = bottom_right
         image[top:bottom+1,left:right+1] = 1   
         
+    #returns an image containing only the perimeter
+    @staticmethod
+    def transform_into_perimeter(image):
+
+        neighbours = np.zeros((image.shape[1], image.shape[0]))
+        #dumb version with 9 pointers, upgrade in the future**********************************************
+        neighbours[1:-1, 1:-1] = (  image[:-2, :-2] + image[:-2, 1:-1] + image[:-2, 2:] +
+                                    image[1:-1, :-2] +                image[1:-1, 2:] + 
+                                    image[2:, :-2] + image[2:, 1:-1] + image[2:, 2:]    )
+        neighbours = neighbours.astype(int)
+
+        rule_test = np.array((0, 1, 1, 1, 1, 1, 1, 1, 0))
         
-      
+        return image*rule_test[neighbours]
+    
+    #returns the value of the perimeter
+    @staticmethod
+    def perimeter(image):
+        return FeatureExtractor.area(FeatureExtractor.transform_into_perimeter(image))
+
+    #our 1st Feature!
+    @staticmethod
+    def area_perimeter_ratio(image):
+        return FeatureExtractor.area(image)/(FeatureExtractor.perimeter(image)**2)
+
 # img = FeatureExtractor.create_image((10,10))
 # print(img)
 # FeatureExtractor.draw_rectangle(img,(2,2),(4,8))
