@@ -107,8 +107,12 @@ class FeatureExtractor:
     @staticmethod
     def perimeter(image):
         return FeatureExtractor.area(FeatureExtractor.transform_into_perimeter(image))
-      
-      
+
+    #our 1st Feature!
+    @staticmethod
+    def area_perimeter_ratio(image):
+        return FeatureExtractor.area(image)/(FeatureExtractor.perimeter(image)**2)
+
 # img = FeatureExtractor.create_image((10,10))
 # print(img)
 # FeatureExtractor.draw_rectangle(img,(2,2),(4,8))
