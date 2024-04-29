@@ -7,6 +7,10 @@ from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
 from __feature__ import snake_case, true_property
 
+from db_credential import PostgreSQLCredential
+from klustr_dao import PostgreSQLKlustRDAO
+from shaperecognitionai.scatter_3d_viewer import QScatter3dViewer
+
 
 class Parameter:
     def __init__(self, name: str, min: int, max: int, current: int):
@@ -95,15 +99,28 @@ class QClassificationWindow(QMainWindow):
         self.__k = Parameter("K", 5, 20, 0)
         self.__max_distance = Parameter("Max distance", 0, 100, 0)
         # fin des valeurs de test
-
         self.window_title = "Klustr KNN Classification"
-        central_layout = QVBoxLayout()
-        central_layout.add_widget(
-            QParameterPicker(self.__k, self.__max_distance))
 
+        # Gestion DB
+        credential = PostgreSQLCredential(password='AAAaaa123')
+        klustr_dao = PostgreSQLKlustRDAO(credential)
+
+        # Génération du menu
+        menu_layout = QVBoxLayout()
+        menu_layout.add_widget(
+            QParameterPicker(self.__k, self.__max_distance))
+        menu_widget = QWidget()
+        menu_widget.set_layout(menu_layout)
+
+        # Combinaison du menu et du widget viewer
         central_widget = QWidget()
+        central_layout = QHBoxLayout()
+        viewer_widget = QScatter3dViewer(parent=central_widget)
+        central_layout.add_widget(menu_widget)
+        central_layout.add_widget(viewer_widget)
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
+
 
 
 def main():
