@@ -10,7 +10,7 @@ from __feature__ import snake_case, true_property
 
 from db_credential import PostgreSQLCredential
 from klustr_dao import PostgreSQLKlustRDAO
-from shaperecognitionai.scatter_3d_viewer import QScatter3dViewer
+from scatter_3d_viewer import QScatter3dViewer
 
 
 class Parameter:
