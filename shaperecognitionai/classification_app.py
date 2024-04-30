@@ -1,7 +1,8 @@
 import sys
 
 from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtGui import QScreen
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
@@ -92,6 +93,11 @@ class QParameter(QWidget):
         parameter.current = value
         print(parameter.current)
 
+
+class QDesktopWidget:
+    pass
+
+
 class QClassificationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -99,18 +105,26 @@ class QClassificationWindow(QMainWindow):
         self.__k = Parameter("K", 5, 20, 0)
         self.__max_distance = Parameter("Max distance", 0, 100, 0)
         # fin des valeurs de test
-        self.window_title = "Klustr KNN Classification"
+        self.__window_title = "Klustr KNN Classification"
+        self.__window_width = 1024 # demander au prof pour resizable selon l'écran, qdesktop deprecated
+        self.__window_height = 768
+        self.resize(self.__window_width, self.__window_height)
 
         # Gestion DB
         credential = PostgreSQLCredential(password='AAAaaa123')
         klustr_dao = PostgreSQLKlustRDAO(credential)
 
-        # Génération du menu
+        # Génération du bouton About et du menu
+        self.about_button = QPushButton("About", self)
+        self.about_button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))
+
         menu_layout = QVBoxLayout()
         menu_layout.add_widget(
             QParameterPicker(self.__k, self.__max_distance))
+        menu_layout.add_widget(self.about_button)
         menu_widget = QWidget()
         menu_widget.set_layout(menu_layout)
+
 
         # Combinaison du menu et du widget viewer
         central_widget = QWidget()
@@ -121,7 +135,14 @@ class QClassificationWindow(QMainWindow):
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
 
-
+    @Slot()
+    def open_dialog(self, title: str, source: str):
+        try:
+            with open(source, 'r', encoding='utf-8') as file:
+                content = file.read()
+                QMessageBox.about(self, title, content)
+        except FileNotFoundError:
+            print("Le fichier n'existe pas.")
 
 def main():
     app = QApplication(sys.argv)
