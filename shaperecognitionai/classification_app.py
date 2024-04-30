@@ -4,7 +4,7 @@ import numpy
 from PySide6.QtCore import Qt, Slot, Signal
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
-from PySide6.QtWidgets import QWidget, QLabel, QScrollBar
+from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
 from __feature__ import snake_case, true_property
@@ -115,30 +115,82 @@ class QClassificationWindow(QMainWindow):
         self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
 
+
         # Gestion DB
         credential = PostgreSQLCredential(password='AAAaaa123')
         self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu
+        __data = klustr_dao.available_datasets
+        """mylist = [klustr_dao.labels_from_dataset(i[1]) for i in __data]
+        print(mylist)
+        
+        mylist2 = [(klustr_dao.image_from_dataset(i[1], False), klustr_dao.image_from_dataset(i[1], True)) for i in __data]
+        print(mylist2)
+        
+        mylist2 = [klustr_dao.image_from_label(mylist[i[0]]) for i in __data]
+        print(mylist2)"""
+        
+        __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
+        
+        self.__dataset = QGroupBox("Dataset")
+        self.__dataset_layout = QVBoxLayout(self.__dataset)
+        self.__dataset_dropmenu = QComboBox()
+        self.__dataset_dropmenu.insert_items(0,__items)
+        self.__dataset_group_layout = QHBoxLayout(self.__dataset)
+        self.__dataset_group1 = QGroupBox("Included in Data Set")
+        self.__dataset_group2 = QGroupBox("Transformation")
+        self.__dataset_group_layout.add_widget(self.__dataset_group1)
+        self.__dataset_group_layout.add_widget(self.__dataset_group2)
+        self.__dataset_layout.add_widget(self.__dataset_dropmenu)
+        self.__dataset_layout.add_layout(self.__dataset_group_layout)
+
+
+        
+        self.__single_test = QGroupBox("Single Test")
+        self.__single_test_layout = QVBoxLayout(self.__single_test)
+        self.__single_test_dropmenu = QComboBox()
+        self.__single_test_view_label = QLabel()
+        self.__single_test_view_label.style_sheet =  'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }' # 354A64
+        self.__single_test_view_label.alignment = Qt.AlignCenter
+        self.__single_test_button = QPushButton("Classify", self)
+        self.__single_test_result_label = QLabel()
+        self.__single_test_layout.add_widget(self.__single_test_dropmenu)
+        self.__single_test_layout.add_widget(self.__single_test_view_label)
+        self.__single_test_layout.add_widget(self.__single_test_button)
+
+        
+        self.__parameters = QGroupBox("KNN parameters")
+        self.__parameters_layout = QVBoxLayout(self.__parameters)
+        self.__parameters_layout.add_widget(QParameterPicker(self.__k, self.__max_distance))
+        
         self.about_button = QPushButton("About", self)
-        self.about_button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))
+        self.about_button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt")) #LE ficher n'existe pas 
+        
 
         menu_layout = QVBoxLayout()
-        menu_layout.add_widget(
-            QParameterPicker(self.__k, self.__max_distance))
+        menu_layout.add_widget(self.__dataset)
+        menu_layout.add_widget(self.__single_test)
+        menu_layout.add_widget(self.__parameters)
         menu_layout.add_widget(self.about_button)
-        menu_widget = QWidget()
-        menu_widget.set_layout(menu_layout)
+        #menu_layout.add_widget(
+        #    QParameterPicker(self.__k, self.__max_distance))
+        #menu_layout.add_widget(self.about_button)
+        #menu_widget = QWidget()
+        #menu_widget.set_layout(menu_layout)
 
 
         # Combinaison du menu et du widget viewer
         central_widget = QWidget()
         central_layout = QHBoxLayout()
         viewer_widget = QScatter3dViewer(parent=central_widget)
-        central_layout.add_widget(menu_widget)
+        central_layout.add_layout(menu_layout)
         central_layout.add_widget(viewer_widget)
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
+        
+        
+        
 
         # ZONE DE TEST
         self.set_raw_data()
