@@ -1,5 +1,6 @@
 import sys
 
+import numpy
 from PySide6.QtCore import Qt, Slot, Signal
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
@@ -11,6 +12,9 @@ from __feature__ import snake_case, true_property
 from db_credential import PostgreSQLCredential
 from klustr_dao import PostgreSQLKlustRDAO
 from scatter_3d_viewer import QScatter3dViewer
+from klustr_utils import *
+from klustr_dao import *
+from knnengine import KNNEngine
 
 
 class Parameter:
@@ -109,10 +113,11 @@ class QClassificationWindow(QMainWindow):
         self.__window_width = 1024 # demander au prof pour resizable selon l'écran, qdesktop deprecated
         self.__window_height = 768
         self.resize(self.__window_width, self.__window_height)
+        self.__knn_engine = KNNEngine()
 
         # Gestion DB
         credential = PostgreSQLCredential(password='AAAaaa123')
-        klustr_dao = PostgreSQLKlustRDAO(credential)
+        self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu
         self.about_button = QPushButton("About", self)
@@ -135,6 +140,10 @@ class QClassificationWindow(QMainWindow):
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
 
+        # ZONE DE TEST
+        self.set_raw_data()
+
+
     @Slot()
     def open_dialog(self, title: str, source: str):
         try:
@@ -143,6 +152,19 @@ class QClassificationWindow(QMainWindow):
                 QMessageBox.about(self, title, content)
         except FileNotFoundError:
             print("Le fichier n'existe pas.")
+
+    @Slot()
+    def set_raw_data(self):
+        query_result = self.__klustr_dao.image_from_dataset('ABC', False)
+        raw_data = []
+        for result in query_result:
+            tag = result[1]
+            result_img = qimage_argb32_from_png_decoding(result[6])
+            result_nparray = ndarray_from_qimage_argb32(result_img)
+            raw_data.append((tag, result_nparray))
+        self.__knn_engine.raw_data = raw_data
+        self.__knn_engine.extract_set_data(raw_data)
+
 
 def main():
     app = QApplication(sys.argv)
