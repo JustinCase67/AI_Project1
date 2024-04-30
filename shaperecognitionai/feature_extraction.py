@@ -112,13 +112,12 @@ class FeatureExtractor:
     @staticmethod
     def transform_into_perimeter(image):
         neighbours = np.zeros((image.shape[1], image.shape[0]))
-        # dumb version with 9 pointers, upgrade in the future**********************************************
         neighbours[1:-1, 1:-1] = (image[:-2, :-2] + image[:-2, 1:-1] + image[:-2, 2:] +
                                   image[1:-1, :-2] + image[1:-1, 2:] +
                                   image[2:, :-2] + image[2:, 1:-1] + image[2:, 2:])
         neighbours = neighbours.astype(int)
 
-        rule_test = np.array((0, 1, 1, 1, 1, 1, 1, 0, 0))
+        rule_test = np.array((0, 1, 1, 1, 1, 1, 1, 1, 0))
 
         return image * rule_test[neighbours]
 
@@ -127,10 +126,10 @@ class FeatureExtractor:
     def perimeter(image):
         return FeatureExtractor.area(FeatureExtractor.transform_into_perimeter(image))
 
-    # our 1st Feature!
+    # return complexity of form
     @staticmethod
-    def area_perimeter_ratio(image):
-        return (4 * (3.1416) * FeatureExtractor.area(image)) / (FeatureExtractor.perimeter(image) ** 2)
+    def complexity(image):
+        return 1 - (4*pi*FeatureExtractor.area(image)) / (FeatureExtractor.perimeter(image)**2)
 
     @staticmethod
     def get_metrics(img):
