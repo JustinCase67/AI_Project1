@@ -1,0 +1,34 @@
+Ce logiciel est le projet no 1 du cours C52.
+
+Il a été réalisé par :
+- Hugo Beaulieu 
+- Marie-Soleil Carrier
+- Emeric Thibodeau-Rivard
+- Justin Twarabimenye
+
+Il consiste à faire __quelque_chose__ avec les concepts suivants :
+- __concept_1__
+- __concept_n__
+
+Nos 3 descripteurs de forme sont :
+- __decripteur_1__ 
+ - en __unité__ pour le domaine __domaine__ 
+ - correspondant à __courte_description__
+- __decripteur_2__ 
+ - en __unité__ pour le domaine __domaine__ 
+ - correspondant à __courte_description__
+- __decripteur_3__ 
+ - en __unité__ pour le domaine __domaine__ 
+ - correspondant à __courte_description__
+
+Plus précisément, ce laboratoire permet de mettre en pratique les notions de : 
+- __notion_1__
+- __notion_n__
+
+Un effort d'abstraction a été fait pour ces points : 
+- __point_1__
+- __point_n__
+
+Finalement, l’ensemble de données le plus complexe que nous avons été capable de résoudre est 
+:
+- __nom_de_l_ensemble_de_données__
