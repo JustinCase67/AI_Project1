@@ -118,7 +118,7 @@ class FeatureExtractor:
                                   image[2:, :-2] + image[2:, 1:-1] + image[2:, 2:])
         neighbours = neighbours.astype(int)
 
-        rule_test = np.array((0, 1, 1, 1, 1, 1, 1, 1, 0))
+        rule_test = np.array((0, 1, 1, 1, 1, 1, 1, 0, 0))
 
         return image * rule_test[neighbours]
 
@@ -130,7 +130,7 @@ class FeatureExtractor:
     # our 1st Feature!
     @staticmethod
     def area_perimeter_ratio(image):
-        return FeatureExtractor.area(image) / (FeatureExtractor.perimeter(image) ** 2)
+        return (4 * (3.1416) * FeatureExtractor.area(image)) / (FeatureExtractor.perimeter(image) ** 2)
 
     @staticmethod
     def get_metrics(img):
