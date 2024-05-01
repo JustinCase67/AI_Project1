@@ -1,13 +1,11 @@
 import sys
-
 import numpy
+
 from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtGui import QScreen
+from PySide6.QtGui import QScreen, QPixmap, QImage
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
-
-from __feature__ import snake_case, true_property
 
 from db_credential import PostgreSQLCredential
 from klustr_dao import PostgreSQLKlustRDAO
@@ -15,6 +13,8 @@ from scatter_3d_viewer import QScatter3dViewer
 from klustr_utils import *
 from klustr_dao import *
 from knnengine import KNNEngine
+
+from __feature__ import snake_case, true_property
 
 
 class Parameter:
@@ -98,19 +98,16 @@ class QParameter(QWidget):
         print(parameter.current)
 
 
-class QDesktopWidget:
-    pass
-
-
 class QClassificationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         # valeurs de test
         self.__k = Parameter("K", 5, 20, 0)
         self.__max_distance = Parameter("Max distance", 0, 100, 0)
+        self.__current_data_set = None
         # fin des valeurs de test
         self.__window_title = "Klustr KNN Classification"
-        self.__window_width = 1024 # demander au prof pour resizable selon l'écran, qdesktop deprecated
+        self.__window_width = 1024
         self.__window_height = 768
         self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
@@ -121,7 +118,7 @@ class QClassificationWindow(QMainWindow):
         self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu
-        __data = klustr_dao.available_datasets
+        __data = self.__klustr_dao.available_datasets
         """mylist = [klustr_dao.labels_from_dataset(i[1]) for i in __data]
         print(mylist)
         
@@ -137,6 +134,7 @@ class QClassificationWindow(QMainWindow):
         self.__dataset_layout = QVBoxLayout(self.__dataset)
         self.__dataset_dropmenu = QComboBox()
         self.__dataset_dropmenu.insert_items(0,__items)
+        self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
         self.__dataset_group_layout = QHBoxLayout(self.__dataset)
         self.__dataset_group1 = QGroupBox("Included in Data Set")
         self.__dataset_group2 = QGroupBox("Transformation")
@@ -154,6 +152,7 @@ class QClassificationWindow(QMainWindow):
         self.__single_test_view_label.style_sheet =  'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }' # 354A64
         self.__single_test_view_label.alignment = Qt.AlignCenter
         self.__single_test_button = QPushButton("Classify", self)
+        self.__single_test_button.clicked.connect(lambda: self.classify_image(self.__single_test_dropmenu.current_index))
         self.__single_test_result_label = QLabel()
         self.__single_test_layout.add_widget(self.__single_test_dropmenu)
         self.__single_test_layout.add_widget(self.__single_test_view_label)
@@ -188,13 +187,6 @@ class QClassificationWindow(QMainWindow):
         central_layout.add_widget(viewer_widget)
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
-        
-        
-        
-
-        # ZONE DE TEST
-        self.set_raw_data()
-
 
     @Slot()
     def open_dialog(self, title: str, source: str):
@@ -206,8 +198,20 @@ class QClassificationWindow(QMainWindow):
             print("Le fichier n'existe pas.")
 
     @Slot()
-    def set_raw_data(self):
-        query_result = self.__klustr_dao.image_from_dataset('ABC', False)
+    def update_data_set(self, dataset_name):
+        self.__current_data_set = self.__klustr_dao.image_from_dataset(dataset_name, False)
+        self.set_raw_data(dataset_name)
+        self.set_single_test_dropmenu(self.__current_data_set)
+
+    def set_single_test_dropmenu(self, data_set):
+        items = [i[3] for i in data_set]
+        self.__single_test_dropmenu.clear()
+        self.__single_test_dropmenu.insert_items(0, items)
+
+    @Slot()
+    def set_raw_data(self, dataset_name: str):
+        # Ajoute les points
+        query_result = self.__klustr_dao.image_from_dataset(dataset_name, False)
         raw_data = []
         for result in query_result:
             tag = result[1]
@@ -215,7 +219,16 @@ class QClassificationWindow(QMainWindow):
             result_nparray = ndarray_from_qimage_argb32(result_img)
             raw_data.append((tag, result_nparray))
         self.__knn_engine.raw_data = raw_data
-        self.__knn_engine.extract_set_data(raw_data)
+        self.__knn_engine.processed_data = self.__knn_engine.extract_set_data()
+
+    @Slot()
+    def classify_image(self, current_index):
+        img_data = self.__current_data_set[current_index]
+        tag = img_data[1]
+        result_img = qimage_argb32_from_png_decoding(img_data[6])
+        result_nparray = ndarray_from_qimage_argb32(result_img)
+        self.__knn_engine.img_data = (tag, result_nparray)
+        self.__knn_engine.processed_image_data = self.__knn_engine.extract_image_data()
 
 
 def main():
