@@ -2,11 +2,12 @@ import numpy as np
 import numpy.typing as npt
 
 from feature_extraction import FeatureExtractor
+from tie_breaker import neighbor_tie_breaker
 
 
 class KNNEngine:
     def __init__(self):
-        self.__k = 1
+        self.__k = 5
         self.__distance = 1
         self.__raw_data = None  # vide au debut, property pour modif quand selection
         self.__processed_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
@@ -38,15 +39,60 @@ class KNNEngine:
 
     def extract_set_data(self):
         length = len(self.__raw_data)
-        self.__processed_data = np.zeros([length, 4])  # 3 dimensions + tag, à sortir du harcodage
+        self.__processed_data = np.zeros(
+            [length, 4])  # 3 dimensions + tag, à sortir du harcodage
         for i, data in enumerate(self.__raw_data):
             metrics = FeatureExtractor.get_metrics(data[1])
             self.__processed_data[i, :len(metrics)] = metrics
             self.__processed_data[i, -1] = self.__lookup_categorie(data[0])
-        print("METRIQUES DATASET", self.__processed_data)
-        print(self.__known_categories)
+
+    # print("METRIQUES DATASET", self.__processed_data)
+    # print(self.__known_categories)
 
     def extract_image_data(self):
         metrics = FeatureExtractor.get_metrics(self.__img_data[1])
         self.__processed_img_data[:len(metrics)] = metrics
-        print("METRIQUES IMAGE", self.__processed_img_data)
+
+    # print("METRIQUES IMAGE", self.__processed_img_data)
+
+    def calculate_distance(self):
+        data_metrics = self.__processed_data[:, :-1]
+        img_metrics = self.__processed_img_data[:-1]
+        distance = []
+        for i, data in enumerate(data_metrics):
+            squares = np.square(data - img_metrics)
+            squares_sum = np.sum(squares)
+            distance.append(squares_sum)
+        self.__metrics_distance = np.array(distance)
+        print(self.__metrics_distance)
+        self.classify()
+
+    def get_neighbor(self):
+        return np.argsort(self.__metrics_distance)[:self.__k + 1]
+
+    def classify(self):
+        neighbor = self.get_neighbor()
+        print("NEIGH", neighbor)
+        tags_index = np.zeros(len(neighbor), dtype=np.int64)
+        for n in neighbor:
+            tags_index[n] = self.__processed_data[n][-1]
+        print(tags_index)
+        # Count occurrences of values at index 0
+        unique_values, counts = np.unique(tags_index, return_counts=True)
+        # Find unique values that occur the same number of times
+        unique_values_same_occurrences = unique_values[counts == counts.max()]
+        print("Unique values at index 0 with the same occurrences:",
+              unique_values_same_occurrences)
+        if len(unique_values_same_occurrences) > 1:
+            metrics = []
+            tags = []
+            for n in neighbor:
+                if self.__processed_data[n][-1] in unique_values_same_occurrences:
+                    metrics.append(self.__processed_data[n][:-1])
+                    tags.append(int(self.__processed_data[n][-1]))
+            result = neighbor_tie_breaker(metrics, tags, self.__processed_img_data[:-1])
+        else:
+            result = self.__known_categories[unique_values_same_occurrences]
+        print("RESULT", self.__known_categories[result])
+        return self.__known_categories[result]
+
