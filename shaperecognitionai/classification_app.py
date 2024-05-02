@@ -228,6 +228,7 @@ class QClassificationWindow(QMainWindow):
         tag = img_data[1]
         result_img = qimage_argb32_from_png_decoding(img_data[6])
         result_nparray = ndarray_from_qimage_argb32(result_img)
+        result_nparray = result_nparray ^ 1
         self.__knn_engine.img_data = (tag, result_nparray)
         self.__knn_engine.processed_image_data = self.__knn_engine.extract_image_data()
         self.__knn_engine.calculate_distance()

@@ -45,8 +45,7 @@ class KNNEngine:
             metrics = FeatureExtractor.get_metrics(data[1])
             self.__processed_data[i, :len(metrics)] = metrics
             self.__processed_data[i, -1] = self.__lookup_categorie(data[0])
-
-    # print("METRIQUES DATASET", self.__processed_data)
+        print("METRIQUES DATASET", self.__processed_data)
     # print(self.__known_categories)
 
     def extract_image_data(self):
@@ -74,11 +73,13 @@ class KNNEngine:
         neighbor = self.get_neighbor()
         print("NEIGH", neighbor)
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
-        for n in neighbor:
-            tags_index[n] = self.__processed_data[n][-1]
+        for i, neighb in enumerate(neighbor):
+            tags_index[i] = self.__processed_data[neighb][-1]
+            # tags_index[n] = self.__processed_data[n][-1]
         print(tags_index)
         # Count occurrences of values at index 0
         unique_values, counts = np.unique(tags_index, return_counts=True)
+
         # Find unique values that occur the same number of times
         unique_values_same_occurrences = unique_values[counts == counts.max()]
         print("Unique values at index 0 with the same occurrences:",
@@ -92,7 +93,7 @@ class KNNEngine:
                     tags.append(int(self.__processed_data[n][-1]))
             result = neighbor_tie_breaker(metrics, tags, self.__processed_img_data[:-1])
         else:
-            result = self.__known_categories[unique_values_same_occurrences]
-        print("RESULT", self.__known_categories[result])
+            result = unique_values_same_occurrences[0]
+        print(self.__known_categories[result])
         return self.__known_categories[result]
 
