@@ -163,6 +163,10 @@ class QClassificationWindow(QMainWindow):
         self.__single_test_layout.add_widget(self.__single_test_dropmenu)
         self.__single_test_layout.add_widget(self.__single_test_view_label)
         self.__single_test_layout.add_widget(self.__single_test_button)
+        self.__single_test_result = QLabel()
+        self.__single_test_result.text = "not classified"
+        self.__single_test_result.alignment = Qt.AlignCenter
+        self.__single_test_layout.add_widget(self.__single_test_result)
         
         self.__parameters = QGroupBox("KNN parameters")
         self.__parameters_layout = QVBoxLayout(self.__parameters)
