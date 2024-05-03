@@ -1,0 +1,22 @@
+
+(Par le document en PyCharm pour voir le About) 
+- Modifier le code de Qt pour le séparer en différentes classes. (On doit pouvoir reprendre les méthodes et changer les paramètres et tout marche).Ligne 133 a Ligne 193 
+- Connecter les boutons
+- Ajuster les Scrolls-Bar et où store la variable k
+- Calculate_distance dans KNN Engine appelle le calcule du tiebreaker. 
+- changer le nom de la fênetre Window -> elle s'appelle Python
+- rédaction du report.txt 
+
+-------------------------------------------------------------------------------
+
+- Reprendre le KNN plus modulaires (basse importance)
+- Updater les infos du datasets
+- Mettre a jour le resultat 
+
+-------------------------------KNNN-------------------------------
+
+- Prendre en compte la distance max .
+- trouver et changer la métrique.
+- La rédaction du ReadMe.
+- Au final, le rapport Excel.
+
