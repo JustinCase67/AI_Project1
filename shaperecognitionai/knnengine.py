@@ -64,7 +64,7 @@ class KNNEngine:
             distance.append(squares_sum)
         self.__metrics_distance = np.array(distance)
         print(self.__metrics_distance)
-        self.classify()
+        return self.classify()
 
     def get_neighbor(self):
         return np.argsort(self.__metrics_distance)[:self.__k + 1]

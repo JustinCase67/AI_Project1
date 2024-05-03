@@ -1,0 +1,4 @@
+ABC
+3: regular_3 wrongfully identified as ellipsoid_200_200
+4: regular_3 wrongfully identified as ellipsoid_200_200
+4 GOOD OUT OF6

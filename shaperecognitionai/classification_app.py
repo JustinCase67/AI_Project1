@@ -202,6 +202,23 @@ class QClassificationWindow(QMainWindow):
         self.__current_data_set = self.__klustr_dao.image_from_dataset(dataset_name, False)
         self.set_raw_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
+        # DEBUT DES TESTS
+        self.test(dataset_name)
+
+    def test(self, dataset_name):
+        file = open("test_results.txt", "a")
+        file.write(dataset_name + "\n")
+        compteur = 0
+        for i, data in enumerate(self.__current_data_set):
+            response = self.classify_image(i)
+            if response == data[1]:
+                compteur += 1
+            else:
+                file.write(str(i))
+                file.write(': ' + data[1])
+                file.write(' wrongfully identified as ' + response + '\n')
+        file.write(str(compteur) + ' GOOD OUT OF' + str(
+            len(self.__current_data_set)) + '\n')
 
     def set_single_test_dropmenu(self, data_set):
         items = [i[3] for i in data_set]
@@ -211,7 +228,7 @@ class QClassificationWindow(QMainWindow):
     @Slot()
     def set_raw_data(self, dataset_name: str):
         # Ajoute les points
-        query_result = self.__klustr_dao.image_from_dataset(dataset_name, False)
+        query_result = self.__klustr_dao.image_from_dataset(dataset_name, True)
         raw_data = []
         for result in query_result:
             tag = result[1]
@@ -231,7 +248,7 @@ class QClassificationWindow(QMainWindow):
         result_nparray = result_nparray ^ 1
         self.__knn_engine.img_data = (tag, result_nparray)
         self.__knn_engine.processed_image_data = self.__knn_engine.extract_image_data()
-        self.__knn_engine.calculate_distance()
+        return self.__knn_engine.calculate_distance()
 
 def main():
     app = QApplication(sys.argv)
