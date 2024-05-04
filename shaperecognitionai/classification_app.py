@@ -187,6 +187,11 @@ class QClassificationWindow(QMainWindow):
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
 
+        self.viewer_widget.axis_x.title = "Axe X : A / P^2"
+        self.viewer_widget.axis_y.title = "Axe Y : A shape / A pseudo circumscribed circle"
+        self.viewer_widget.axis_z.title = "Axe Z : A pseudo inscribed circle / A pseudo circumscribed circle"
+        self.viewer_widget.title = "KlustR KNN Classification"
+
     @Slot()
     def open_dialog(self, title: str, source: str):
         try:
@@ -223,6 +228,7 @@ class QClassificationWindow(QMainWindow):
         set_data = self.__knn_engine.extract_set_data()
         self.add_points(set_data, True)
 
+
     @Slot()
     def classify_image(self, current_index):
         img_data = self.__current_data_set[current_index]
@@ -246,11 +252,11 @@ class QClassificationWindow(QMainWindow):
             self.viewer_widget.clear()
             for i in range(len(self.__knn_engine.get_known_forms())):
                 self.viewer_widget.add_serie(sets[i][:, :-1], self.__color_sequence.next(),
-                                             title=self.__knn_engine.get_known_forms()[i])
+                                             title=self.__knn_engine.get_known_forms()[i], size_percent=0.05)
 
         else:
             self.viewer_widget.remove_serie('unkown shape')
-            self.viewer_widget.add_serie(set_data[:-1].reshape(1, -1), QColor("black"), title="unkown shape")
+            self.viewer_widget.add_serie(set_data[:-1].reshape(1, -1), QColor("black"), title="unkown shape", size_percent=0.05)
 
     def test(self, dataset_name):
         file = open("test_results.txt", "a")

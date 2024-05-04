@@ -24,36 +24,6 @@ class FeatureExtractor:
         extreme_bottom_point = FeatureExtractor.get_an_extreme_point(img, 1, 1, 1)
         return extreme_top_point, extreme_bottom_point, extreme_left_point, extreme_right_point
 
-
-    #deprecated
-    @staticmethod
-    def get_extreme_points(img):
-        size_x, size_y = img.shape
-
-        extreme_left_tab = np.argmax(img[:] == 1, axis=0)
-        mask = extreme_left_tab > 0
-        extreme_left_index = np.argmax(mask)
-        extreme_left_points = (extreme_left_tab[extreme_left_index], extreme_left_index)
-
-        extreme_right_tab = np.argmax(img[::-1, ::-1] == 1, axis=0)
-        mask = extreme_right_tab > 0
-        extreme_right_y_index = np.argmax(mask)
-        extreme_right_points = (extreme_right_tab[extreme_right_y_index], extreme_right_y_index)
-        extreme_right_points = (size_x - 1 - extreme_right_points[0], size_y - 1 - extreme_right_points[1])
-
-        extreme_top_tab = np.argmax(img == 1, axis=1)
-        mask = extreme_top_tab > 0
-        extreme_top_y_index = np.argmax(mask)
-        extreme_top_points = (extreme_top_tab[extreme_top_y_index], extreme_top_y_index)
-
-        extreme_bottom_tab = np.argmax(img[::-1, ::-1] == 1, axis=1)
-        mask = extreme_bottom_tab > 0
-        extreme_bottom_y_index = np.argmax(mask)
-        extreme_bottom_points = (extreme_bottom_tab[extreme_bottom_y_index], extreme_bottom_y_index)
-        extreme_bottom_points = (size_x - 1 - extreme_bottom_points[0], size_y - 1 - extreme_bottom_points[1])
-        # TUPLE POSITIONS (TOP, BOTTOM, LEFT, RIGHT) (for each positions row first then column)
-        return extreme_top_points, extreme_bottom_points, extreme_left_points, extreme_right_points
-
     # take two tuples of position points(x,y)
     @staticmethod
     def distance_between_two_points(centroid, point):
@@ -139,10 +109,11 @@ class FeatureExtractor:
         min_distance = FeatureExtractor.get_min_distance(distances)
         ratio_perimeter_area = FeatureExtractor.complexity(img)
         ratio_area_form_circle = FeatureExtractor.ratio_area(img, max_distance)
-        ratio_distances_min_max = 1
         #ratio_distances_min_max = FeatureExtractor.ratio_min_max_distances(max_distance, min_distance)
 
-        return ratio_perimeter_area, ratio_area_form_circle, ratio_distances_min_max
+        ratio_tiny_circle_big_circle = FeatureExtractor.area_of_circle(min_distance) / FeatureExtractor.area_of_circle(max_distance)
+
+        return ratio_perimeter_area, ratio_area_form_circle, ratio_tiny_circle_big_circle
 
 
 # Press the green button in the gutter to run the script.
