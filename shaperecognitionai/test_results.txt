@@ -288,3 +288,140 @@ ABC
 ABC
 4: regular_3 wrongfully identified as ellipsoid_200_200
 5 GOOD OUT OF6
+ABC
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+Fox-Tiny
+1: circleclusters_3 wrongfully identified as regular_3
+2: circleclusters_3 wrongfully identified as Undefined
+6: circleclusters_3 wrongfully identified as regular_3
+8: circleclusters_3 wrongfully identified as regular_3
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+ABC
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6
+ABC
+ABC
+ABC
+4: regular_3 wrongfully identified as ellipsoid_200_200
+5 GOOD OUT OF6

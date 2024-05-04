@@ -7,10 +7,18 @@ from feature_extraction import FeatureExtractor
 
 class KNNEngine:
     def __init__(self):
-        self.__k = 3
-        self.__distance = 1
+        self.__k = Parameter("K", 1, 10, 3)
+        self.__max_distance = Parameter("Max distance", 0, 1, 1)
         self.__training_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
         self.__known_categories = []
+
+    @property
+    def k(self):
+        return self.__k
+
+    @property
+    def max_distance(self):
+        return self.__max_distance
 
     @property
     def training_data(self):
@@ -50,7 +58,8 @@ class KNNEngine:
         return metrics_distance
 
     def get_neighbor(self, distances):
-        return np.argsort(distances)[:self.__k]
+        print('CURRENT K', self.__k.current)
+        return np.argsort(distances)[:self.__k.current]
 
     def get_tags_index(self, neighbor):
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
@@ -81,3 +90,34 @@ class KNNEngine:
         distances = util.distance_from_centroid(metrics, tags,
                                                 test_image[:-1])
         return np.argmin(distances)
+
+class Parameter:
+    def __init__(self, name: str, min: int, max: int, current: int):
+        self.__name = name
+        self.__min = min
+        self.__max = max
+        self.__current = current
+
+    @property
+    def current(self):
+        return self.__current
+
+    @current.setter
+    def current(self, value: int):
+        self.__current = value
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def min(self):
+        return self.__min
+
+    @property
+    def max(self):
+        return self.__max
+
+    @max.setter
+    def max(self, max):
+        self.__max = max

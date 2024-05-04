@@ -181,6 +181,7 @@ class QClassificationWindow(QMainWindow):
         self.__parameters_layout = QVBoxLayout(self.__parameters)
         self.__parameters_layout.add_widget(QParameterPicker(self.__k, self.__max_distance))
 
+
         self.about_button = QPushButton("About", self)
         self.about_button.clicked.connect(
             lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))  # LE ficher n'existe pas

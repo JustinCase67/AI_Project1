@@ -13,66 +13,38 @@ from klustr_dao import PostgreSQLKlustRDAO
 from scatter_3d_viewer import QScatter3dViewer, QColorSequence
 from klustr_utils import *
 from klustr_dao import *
-from knnengine_v2 import KNNEngine
+from knnengine_v2 import KNNEngine, Parameter
 
 from __feature__ import snake_case, true_property
-
-
-class Parameter:
-    def __init__(self, name: str, min: int, max: int, current: int):
-        self.__name = name
-        self.__min = min
-        self.__max = max
-        self.__current = current
-
-    @property
-    def current(self):
-        return self.__current
-
-    @current.setter
-    def current(self, value: int):
-        self.__current = value
-
-    @property
-    def name(self):
-        return self.__name
-
-    @property
-    def min(self):
-        return self.__min
-
-    @property
-    def max(self):
-        return self.__max
-
-    @max.setter
-    def max(self, max):
-        self.__max = max
-
 
 class QParameterPicker(QWidget):
     def __init__(self, *parameters: Parameter):
         super().__init__()
         self.__widget_title = QLabel()
         self.__widget_title.text = "Parameters"
+        self.__test = []
 
         self.__central_layout = QVBoxLayout()
         for _ in parameters:
-            self.__central_layout.add_widget(QParameter(_))
+            p = QParameter(_)
+            self.__test.append(p)
+            self.__central_layout.add_widget(p)
         self.set_layout(self.__central_layout)
+
 
 
 class QParameter(QWidget):
     def __init__(self, parameter: Parameter):
         super().__init__()
-        self.__parameter_scroll_bar = QScrollBar()
-        self.__parameter_value = QLabel()
+        self.parameter_scroll_bar = QScrollBar()
+        self.parameter_value = QLabel()
+        self.parameter_title = parameter.name
 
         parameter_layout = QHBoxLayout()
         parameter_layout.add_layout(
             self.__create_parameter(parameter,
-                                    self.__parameter_scroll_bar,
-                                    self.__parameter_value))
+                                    self.parameter_scroll_bar,
+                                    self.parameter_value))
 
         self.set_layout(parameter_layout)
 
@@ -101,22 +73,12 @@ class QParameter(QWidget):
     @Slot()
     def set_current(self, parameter: Parameter, value: int):
         parameter.current = value
-        print(parameter.current)
-
-class QStat(QWidget):
-    def __init__(self, stat_name: str):
-        super.__init__()
-        self.__stat_label = QLabel()
-        self.__stat_value = QLabel()
-        self.__stat_label.text = stat_name + " = "
 
 
 class QClassificationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         # valeurs de test
-        self.__k = Parameter("K", 1, 10, 1)
-        self.__max_distance = Parameter("Max distance", 0, 1, 1)
         self.__current_data_set = None
         # fin des valeurs de test
         self.__window_title = "Klustr KNN Classification"
@@ -179,11 +141,13 @@ class QClassificationWindow(QMainWindow):
 
         self.__parameters = QGroupBox("KNN parameters")
         self.__parameters_layout = QVBoxLayout(self.__parameters)
-        self.__parameters_layout.add_widget(QParameterPicker(self.__k, self.__max_distance))
+        self.__parameters_picker = QParameterPicker(self.__knn_engine.k, self.__knn_engine.max_distance)
+        self.__parameters_layout.add_widget(self.__parameters_picker)
+
 
         self.about_button = QPushButton("About", self)
         self.about_button.clicked.connect(
-            lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))  # LE ficher n'existe pas
+            lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))
 
         menu_layout = QVBoxLayout()
         menu_layout.add_widget(self.__dataset)
@@ -207,7 +171,7 @@ class QClassificationWindow(QMainWindow):
 
         # Initialisations
         self.update_data_set('ABC')
-        self.set_thumbnail(self.__single_test_dropmenu.current_index)
+        #self.set_thumbnail(self.__single_test_dropmenu.current_index)
 
     @Slot()
     def open_dialog(self, title: str, source: str):
@@ -228,10 +192,9 @@ class QClassificationWindow(QMainWindow):
     @Slot()
     def update_data_set(self, dataset_name):
         self.__current_data_set = self.__klustr_dao.image_from_dataset(dataset_name, False)
-        print(self.__current_data_set)
         self.set_training_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
-        self.test(dataset_name)
+        #self.test(dataset_name)
         self.set_thumbnail(self.__single_test_dropmenu.current_index)
 
 
@@ -254,6 +217,16 @@ class QClassificationWindow(QMainWindow):
             raw_data = self.convert_query_to_img_tuple(result)
             self.__knn_engine.training_data[i] = self.__knn_engine.prepare_data(raw_data, True)
         self.add_points(self.__knn_engine.training_data, True)
+        self.set_k_max(len(self.__knn_engine.training_data))
+
+    def set_k_max(self, new_max):
+        self.__knn_engine.k.max = new_max
+        params = self.__parameters_picker.find_children(QParameter)
+        for p in params:
+            if p.parameter_title == self.__knn_engine.k.name:
+                print('MAX', self.__knn_engine.k.max)
+                p.parameter_scroll_bar.set_range(self.__knn_engine.k.min,
+                                                 self.__knn_engine.k.max)
 
     @Slot()
     def classify_image(self, current_index):
