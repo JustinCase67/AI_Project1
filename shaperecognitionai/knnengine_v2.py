@@ -3,134 +3,81 @@ import numpy.typing as npt
 
 import util
 from feature_extraction import FeatureExtractor
-from util import neighbor_tie_breaker
 
 
 class KNNEngine:
     def __init__(self):
         self.__k = 3
         self.__distance = 1
-        self.__raw_data = None  # vide au debut, property pour modif quand selection
-        self.__processed_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
-        self.__img_data = None  # vide au debut, property pour modif quand selection
-        self.__processed_img_data = np.zeros(4)
+        self.__training_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
         self.__known_categories = []
-        self.__metrics_distance = None  # index de processed_data et la valeur de la distance
 
     @property
-    def raw_data(self):
-        return self.__raw_data
+    def training_data(self):
+        return self.__training_data
 
-    @raw_data.setter
-    def raw_data(self, data):  # ajouter le type hinting
-        self.__raw_data = data
-
-    @property
-    def img_data(self):
-        return self.__img_data
-
-    @img_data.setter
-    def img_data(self, data):  # ajouter le type hinting
-        self.__img_data = data
+    @training_data.setter
+    def training_data(self, data):
+        self.__training_data = data
 
     @property
-    def processed_data(self):
-        return self.__processed_data
-
-    @processed_data.setter
-    def processed_data(self, data):  # ajouter le type hinting
-        self.__processed_data = data
-
-    @property
-    def processed_img_data(self):
-        return self.processed_img_data
-
-    @processed_img_data.setter
-    def processed_img_data(self, data):  # ajouter le type hinting
-        self.processed_img_data = data
+    def known_categories(self):
+        return self.__known_categories
 
     def __lookup_categorie(self, tag: str) -> int:
+        if not self.__known_categories:
+            self.__known_categories.append("Undefined")
         if tag not in self.__known_categories:
             self.__known_categories.append(tag)
         return self.__known_categories.index(tag)
 
-    def extract_set_data(self):
-        length = len(self.__raw_data)
-        self.__known_categories = []
-        self.__known_categories.append("Undefined")
-        self.__processed_data = np.zeros([length, 4])
-        for i, data in enumerate(self.__raw_data):
-            metrics = FeatureExtractor.get_metrics(data[1])
-            self.__processed_data[i, :len(metrics)] = metrics
-            self.__processed_data[i, -1] = self.__lookup_categorie(data[0])
-        print('CATE', self.__known_categories)
-        print("METRIQUES DATASET", self.__processed_data)
-        return self.__processed_data
+    def prepare_data(self, raw_data, raw: bool):
+        extracted_data = np.zeros(4)
+        metrics = FeatureExtractor.get_metrics(raw_data[1])
+        extracted_data[:len(metrics)] = metrics
+        if raw:
+            tag = self.__lookup_categorie(raw_data[0])
+            extracted_data[-1] = tag
+        return extracted_data
 
-    def get_known_forms(self):
-        return self.__known_categories
+    def assess_data_distance(self, test_image):
+        training_data_metrics = self.__training_data[:, :-1]
+        img_metrics = test_image[:-1]
+        metrics_distance = np.zeros(len(self.__training_data))
+        for i, metric in enumerate(training_data_metrics):
+            metrics_distance[i] = util.euclidean_distance_squared(metric,
+                                                                  img_metrics)
+        return metrics_distance
 
-    def extract_image_data(self):
-        metrics = FeatureExtractor.get_metrics(self.__img_data[1])
-        self.__processed_img_data[:len(metrics)] = metrics
-        return self.__processed_img_data
-
-    # print("METRIQUES IMAGE", self.__processed_img_data)
-
-    def calculate_distance(self):
-        data_metrics = self.__processed_data[:, :-1]
-        img_metrics = self.__processed_img_data[:-1]
-        distance = []
-        for i, data in enumerate(data_metrics):
-            squares_sum = tie_breaker.euclidean_distance_squared(data, img_metrics)
-            distance.append(squares_sum)
-        self.__metrics_distance = np.array(distance)
-        print(self.__metrics_distance)
-        return self.classify()
-
-    def get_neighbor(self):
-        return np.argsort(self.__metrics_distance)[:self.__k]
+    def get_neighbor(self, distances):
+        return np.argsort(distances)[:self.__k]
 
     def get_tags_index(self, neighbor):
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
         for i, neighb in enumerate(neighbor):
-            tags_index[i] = self.__processed_data[neighb][-1]
-        print(tags_index)
+            tags_index[i] = self.__training_data[neighb][-1]
         return tags_index
 
-    def classify(self):
-        neighbor = self.get_neighbor()
-        print("NEIGH", neighbor)
+    def classify(self, test_image):
+        distances = self.assess_data_distance(test_image)
+        neighbor = self.get_neighbor(distances)
         tags_index = self.get_tags_index(neighbor)
-        # Count occurrences of values at index 0
         unique_values, counts = np.unique(tags_index, return_counts=True)
-        # Find unique values that occur the same number of times
         unique_values_same_occurrences = unique_values[counts == counts.max()]
-        print("Unique values at index 0 with the same occurrences:",
-              unique_values_same_occurrences)
-
         if len(unique_values_same_occurrences) > 1:
-            metrics = []
-            tags = []
-            for n in neighbor:
-                if self.__processed_data[n][-1] in unique_values_same_occurrences:
-                    metrics.append(self.__processed_data[n][:-1])
-                    tags.append(int(self.__processed_data[n][-1]))
-            result = tie_breaker()
+            result = self.tie_breaker(test_image, neighbor,
+                                      unique_values_same_occurrences)
         else:
             result = unique_values_same_occurrences[0]
         return self.__known_categories[result]
 
-    """A FINIR
-    def tie_breaker(neighbor, ):
+    def tie_breaker(self, test_image, neighbor, ties):
         metrics = []
         tags = []
         for n in neighbor:
-            if self.__processed_data[n][-1] in unique_values_same_occurrences:
-                metrics.append(self.__processed_data[n][:-1])
-                tags.append(int(self.__processed_data[n][-1]))
-        distances = util.distance_from_centroid(metrics, tags, self.__processed_img_data[:-1])
+            if self.__training_data[n][-1] in ties:
+                metrics.append(self.__training_data[n][:-1])
+                tags.append(int(self.__training_data[n][-1]))
+        distances = util.distance_from_centroid(metrics, tags,
+                                                test_image[:-1])
         return np.argmin(distances)
-    """
-
-

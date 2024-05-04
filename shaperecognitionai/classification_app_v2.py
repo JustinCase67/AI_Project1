@@ -229,7 +229,7 @@ class QClassificationWindow(QMainWindow):
     def update_data_set(self, dataset_name):
         self.__current_data_set = self.__klustr_dao.image_from_dataset(dataset_name, False)
         print(self.__current_data_set)
-        self.set_raw_data(dataset_name)
+        self.set_training_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
         self.test(dataset_name)
         self.set_thumbnail(self.__single_test_dropmenu.current_index)
@@ -240,33 +240,27 @@ class QClassificationWindow(QMainWindow):
         self.__single_test_dropmenu.clear()
         self.__single_test_dropmenu.insert_items(0, items)
 
-    @Slot()
-    def set_raw_data(self, dataset_name: str):
-        # Ajoute les points
-        query_result = self.__klustr_dao.image_from_dataset(dataset_name, True)
-        raw_data = []
-        for result in query_result:
-            tag = result[1]
-            result_img = qimage_argb32_from_png_decoding(result[6])
-            result_nparray = ndarray_from_qimage_argb32(result_img)
-            result_nparray = result_nparray ^ 1
-            raw_data.append((tag, result_nparray))
-        self.__knn_engine.raw_data = raw_data
-        set_data = self.__knn_engine.extract_set_data()
-        self.add_points(set_data, True)
+    def convert_query_to_img_tuple(self, query_result):
+        tag = query_result[1]
+        result_img = qimage_argb32_from_png_decoding(query_result[6])
+        img_nparray = ndarray_from_qimage_argb32(result_img) ^ 1
+        return tag, img_nparray
 
+    @Slot()
+    def set_training_data(self, dataset_name: str):
+        query_result = self.__klustr_dao.image_from_dataset(dataset_name, True)
+        self.__knn_engine.training_data = np.zeros([len(query_result), 4])
+        for i, result in enumerate(query_result):
+            raw_data = self.convert_query_to_img_tuple(result)
+            self.__knn_engine.training_data[i] = self.__knn_engine.prepare_data(raw_data, True)
+        self.add_points(self.__knn_engine.training_data, True)
 
     @Slot()
     def classify_image(self, current_index):
-        img_data = self.__current_data_set[current_index]
-        tag = img_data[1]
-        result_img = qimage_argb32_from_png_decoding(img_data[6])
-        result_nparray = ndarray_from_qimage_argb32(result_img)
-        result_nparray = result_nparray ^ 1
-        self.__knn_engine.img_data = (tag, result_nparray)
-        extracted_image_data = self.__knn_engine.extract_image_data()
-        # self.add_points(extracted_image_data, False) A REPRENDRE QUAND ON EST PLUS EN VERSION TEST
-        result = self.__knn_engine.calculate_distance()
+        raw_img_data = self.convert_query_to_img_tuple(self.__current_data_set[current_index])
+        extracted_img_data = self.__knn_engine.prepare_data(raw_img_data, False)
+        self.add_points(extracted_img_data, False)
+        result = self.__knn_engine.classify(extracted_img_data)
         self.__single_test_result.text = result
         return result
 
@@ -274,15 +268,15 @@ class QClassificationWindow(QMainWindow):
     def add_points(self, set_data, is_cloud):
         if is_cloud:
             sets = []
-            for i in range(len(self.__knn_engine.get_known_forms())):
+            for i in range(len(self.__knn_engine.known_categories)):
                 indices = np.where(set_data[:, 3] == i)[0]
                 valid_rows_view = set_data[indices]
                 sets.append(valid_rows_view)
                 print("valid_rows index", i, valid_rows_view[:, :-1])
             self.viewer_widget.clear()
-            for i in range(len(self.__knn_engine.get_known_forms())):
+            for i in range(len(self.__knn_engine.known_categories)):
                 self.viewer_widget.add_serie(sets[i][:, :-1], self.__color_sequence.next(),
-                                             title=self.__knn_engine.get_known_forms()[i])
+                                             title=self.__knn_engine.known_categories[i])
 
         else:
             self.viewer_widget.remove_serie('unkown shape')
