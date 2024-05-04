@@ -1,7 +1,7 @@
 import sys
 import numpy
 
-from PySide6.QtCore import Qt, Slot, Signal
+from PySide6.QtCore import Qt, Slot, Signal, QString
 from PySide6.QtGui import QScreen, QPixmap, QImage
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
@@ -112,6 +112,7 @@ class QClassificationWindow(QMainWindow):
         self.__window_height = 768
         self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
+        self.__data_info = []
 
 
         # Gestion DB
@@ -135,7 +136,9 @@ class QClassificationWindow(QMainWindow):
         self.__dataset_layout = QVBoxLayout(self.__dataset)
         self.__dataset_dropmenu = QComboBox()
         self.__dataset_dropmenu.insert_items(0,__items)
-        self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
+        #self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
+        self.__dataset_dropmenu.activated.connect(lambda index: self.get_data_info(index))
+        self.__dataset_dropmenu.activated.connect(lambda: self.update_labels())
         self.__dataset_group_layout = QHBoxLayout(self.__dataset)
         self.__dataset_group1 = QGroupBox("Included in Data Set")
         self.__dataset_group1_layout = QVBoxLayout()  # Layout vertical pour le groupe
@@ -148,17 +151,17 @@ class QClassificationWindow(QMainWindow):
         self.__info_category = QWidget()
         self.__info_layout.add_widget(self.__info_category)
         self.__info_category_layout = QHBoxLayout(self.__info_category)
-        category_count_label = QLabel("Category count:")
-        category_count_value = QLabel("9")
-        self.__info_category_layout.add_widget(category_count_label)
-        self.__info_category_layout.add_widget(category_count_value)
+        self.category_count_label = QLabel("Category count:")
+        self.category_count_value = QLabel(self)
+        self.__info_category_layout.add_widget(self.category_count_label)
+        self.__info_category_layout.add_widget(self.category_count_value)
 
         # Training image count
         self.__info_training = QWidget()
         self.__info_layout.add_widget(self.__info_training)
         self.__info_training_layout = QHBoxLayout(self.__info_training)
         training_count_label = QLabel("Training image count:")
-        training_count_value = QLabel("126")
+        training_count_value = QLabel()
         self.__info_training_layout.add_widget(training_count_label)
         self.__info_training_layout.add_widget(training_count_value)
 
@@ -167,7 +170,7 @@ class QClassificationWindow(QMainWindow):
         self.__info_layout.add_widget(self.__info_test)
         self.__info_test_layout = QHBoxLayout(self.__info_test)
         test_count_label = QLabel("Test image count:")
-        test_count_value = QLabel("189")
+        test_count_value = QLabel()
         self.__info_test_layout.add_widget(test_count_label)
         self.__info_test_layout.add_widget(test_count_value)
 
@@ -176,7 +179,7 @@ class QClassificationWindow(QMainWindow):
         self.__info_layout.add_widget(self.__info_total)
         self.__info_total_layout = QHBoxLayout(self.__info_total)
         total_count_label = QLabel("Total image count:")
-        total_count_value = QLabel("315")
+        total_count_value = QLabel()
         self.__info_total_layout.add_widget(total_count_label)
         self.__info_total_layout.add_widget(total_count_value)
 
@@ -331,6 +334,27 @@ class QClassificationWindow(QMainWindow):
         self.__knn_engine.img_data = (tag, result_nparray)
         self.__knn_engine.processed_image_data = self.__knn_engine.extract_image_data()
         return self.__knn_engine.calculate_distance()
+
+    @Slot()
+    def get_data_info(self, index):
+        selected_text = self.__dataset_dropmenu.item_text(index)
+        for data in self.__klustr_dao.available_datasets:
+            print("in loop")
+            if data[1] in selected_text:
+                self.__data_info = data
+                test = data
+
+    @Slot()
+    def update_labels(self):
+        print("------------------------------------------------------------------")
+        print(self.__data_info[5])
+        test = str(self.__data_info[5])
+        test = QString(str(self.__data_info[5]))
+        self.category_count_value.selected_text(test)
+        self.update()
+        #self.category_count_value.adjust_size()
+
+
 
 def main():
     app = QApplication(sys.argv)
