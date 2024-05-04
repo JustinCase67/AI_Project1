@@ -56,12 +56,15 @@ class KNNEngine:
 
     def extract_set_data(self):
         length = len(self.__raw_data)
+        self.__known_categories = []
+        self.__known_categories.append("Undefined")
         self.__processed_data = np.zeros(
             [length, 4])  # 3 dimensions + tag, à sortir du harcodage
         for i, data in enumerate(self.__raw_data):
             metrics = FeatureExtractor.get_metrics(data[1])
             self.__processed_data[i, :len(metrics)] = metrics
             self.__processed_data[i, -1] = self.__lookup_categorie(data[0])
+        print('CATE', self.__known_categories)
         print("METRIQUES DATASET", self.__processed_data)
         return self.__processed_data
     # print(self.__known_categories)
