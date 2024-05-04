@@ -7,7 +7,7 @@ Il a été réalisé par :
 - Justin Twarabimenye
 
 Il consiste à faire __quelque_chose__ avec les concepts suivants :
-- __concept_1__
+- __concept_1__knn
 - __concept_n__
 
 Nos 3 descripteurs de forme sont :
