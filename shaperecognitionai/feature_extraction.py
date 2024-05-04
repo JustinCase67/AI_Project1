@@ -102,6 +102,84 @@ class FeatureExtractor:
         return 1 - (4*pi*FeatureExtractor.area(image)) / (FeatureExtractor.perimeter(image)**2)
 
     @staticmethod
+    def get_diagonals_from_point(array, start_row, start_col):
+        # Get dimensions of the array
+        rows, cols = array.shape
+
+        # Flatten the array
+        flattened_array = array.flatten()
+
+        # Calculate the index of the starting point in the flattened array
+        start_index = start_row * cols + start_col
+
+        # Create an array of indices for main diagonal and anti-diagonal
+        diag1_indices = np.arange(min(rows - start_row, cols - start_col))
+        diag2_indices = np.arange(min(start_row + 1, cols - start_col))
+        diag3_indices = np.arange(min(rows - start_row, start_col + 1))
+        diag4_indices = np.arange(min(start_row + 1, start_col + 1))
+
+        # Calculate indices for main diagonal and anti-diagonal in the flattened array
+        diag1_flat_indices = start_index + diag1_indices * (cols + 1)
+        diag2_flat_indices = start_index - diag2_indices * (cols - 1)
+        diag3_flat_indices = start_index + diag3_indices * (cols - 1)
+        diag4_flat_indices = start_index - diag4_indices * (cols + 1)
+
+        # Create views for the diagonals from the flattened array
+        diag1 = flattened_array[diag1_flat_indices]
+        diag2 = flattened_array[diag2_flat_indices]
+        diag3 = flattened_array[diag3_flat_indices]
+        diag4 = flattened_array[diag4_flat_indices]
+
+        return diag1, diag2, diag3, diag4
+
+
+    @staticmethod
+    def get_views_from_point(array, start_row, start_col):
+        # Get dimensions of the array
+        rows, cols = array.shape
+
+        # Flatten the array
+        flattened_array = array.flatten()
+
+        # Calculate the index of the starting point in the flattened array
+        start_index = start_row * cols + start_col
+
+        # Calculate indices for left, right, up, and down views in the flattened array
+        left_indices = np.arange(start_index % cols, -1, -1)
+        right_indices = np.arange(0, cols - start_index % cols)
+        up_indices = np.arange(start_index // cols, -1, -1)
+        down_indices = np.arange(0, rows - start_index // cols)
+
+        # Calculate indices for left, right, up, and down views in the flattened array
+        left_flat_indices = start_index - left_indices
+        right_flat_indices = start_index + right_indices
+        up_flat_indices = start_index - up_indices * cols
+        down_flat_indices = start_index + down_indices * cols
+
+        # Create views for the left, right, up, and down directions from the flattened array
+        left_view = flattened_array[left_flat_indices[::-1]]
+        right_view = flattened_array[right_flat_indices]
+        up_view = flattened_array[up_flat_indices[::-1]]
+        down_view = flattened_array[down_flat_indices]
+
+        return left_view, right_view, up_view, down_view
+
+    @staticmethod
+    def get_closest_distance_from_centroid_2d(array, centroid_x, centroid_y):
+        diagonals = FeatureExtractor.get_diagonals_from_point(array, centroid_x, centroid_y)
+        lines = FeatureExtractor.get_views_from_point(array, centroid_x, centroid_y)
+        print(array[centroid_x,centroid_y])
+        nearest_one_index = []
+        for i in range(len(diagonals)):
+            nearest_one_index.append(np.argmax(diagonals[i][:] == (1 if array[centroid_x, centroid_y] == 0 else 0)))
+
+        for y in range(len(lines)):
+            nearest_one_index.append(np.argmax(lines[y][:] == (1 if array[centroid_x, centroid_y] == 0 else 0)))
+        np_indexes = np.array(nearest_one_index)
+        min_above_zero = np.argmin(np_indexes[np_indexes > 0])
+        return nearest_one_index, min_above_zero
+
+    @staticmethod
     def get_metrics(img):
         points = FeatureExtractor.get_extreme_points_2D(img)
         distances = FeatureExtractor.distances_from_a_point(points, FeatureExtractor.centroid(img))
@@ -118,11 +196,68 @@ class FeatureExtractor:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    img = FeatureExtractor.create_image((10, 10))
-    print(img)
-    FeatureExtractor.draw_rectangle(img, (2, 2), (4, 8))
-    FeatureExtractor.draw_rectangle(img, (4, 5), (8, 7))
-    print(img)
-    img[1, 3] = 1
-    print(img)
-    print(FeatureExtractor.get_metrics(img))
+    #img = FeatureExtractor.create_image((10, 10))
+    #print(img)
+    #FeatureExtractor.draw_rectangle(img, (2, 2), (4, 8))
+    #FeatureExtractor.draw_rectangle(img, (4, 5), (8, 7))
+    #print(img)
+    #img[1, 3] = 1
+    #print(img)
+    #print(FeatureExtractor.get_metrics(img))
+    # Example 6x6 array with different numbers
+    arr = np.array([[1, 0, 3, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [5, 0, 0, 0, 0, 4],
+                    [0, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 2, 0, 0, 1]])
+
+    arr2 = np.array([
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        [1, 1, 0, 0, 0, 0, 1, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ])
+
+    # Starting point
+    start_row = 4
+    start_col = 4
+
+    # Get diagonals from the starting point
+    result = FeatureExtractor.get_diagonals_from_point(arr2, start_row, start_col)
+    print(result)
+    print("Diagonals from point ({},{}):".format(start_row, start_col))
+    print("Diagonal 1 (Main diagonal right):", result[0])
+    print("Diagonal 2 (Anti-diagonal right :):", result[1])
+    print("Diagonal 3(Anti-diagonal left):", result[2])
+    print("Diagonal 4: (Main diagonal left) :", result[3])
+    npnear = np.argmax(result == 1, axis=0)
+    print(npnear)
+    nearest_one_index = []
+    for i in range(4):
+        nearest_one_index.append(np.argmax(result[i][:] == 1))
+
+    for i in range(4):
+        print("Nearest one at Index ", i , " : ", nearest_one_index[i])
+ # Get diagonals from the starting point
+    result = FeatureExtractor.get_views_from_point(arr2, start_row, start_col)
+    print("Diagonals from point ({},{}):".format(start_row, start_col))
+    print("Go Left:", result[0])
+    print("Go Right:", result[1])
+    print("Go Up : ", result[2])
+    print("Go Down :", result[3])
+
+    nearest_one_index = []
+    for i in range(4):
+        nearest_one_index.append(np.argmax(result[i][:] == 1))
+
+    for i in range(4):
+        print("Nearest one at Index ", i , " : ", nearest_one_index[i])
+    result = FeatureExtractor.get_closest_distance_from_centroid_2d(arr2,start_row,start_col)
+    print(result)

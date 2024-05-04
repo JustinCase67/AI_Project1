@@ -1,6 +1,6 @@
 import numpy as np
 
-class util:
+class Util:
     @staticmethod
     def centroid_from_coordinates(coordinates):
         num_points = len(coordinates)

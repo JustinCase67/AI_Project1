@@ -115,7 +115,7 @@ class QClassificationWindow(QMainWindow):
         self.__color_sequence = QColorSequence()
 
         # Gestion DB
-        credential = PostgreSQLCredential(password='AAAaaa123')
+        credential = PostgreSQLCredential(password='firen123')
         self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu
@@ -191,6 +191,9 @@ class QClassificationWindow(QMainWindow):
         self.viewer_widget.axis_y.title = "Axe Y : A shape / A pseudo circumscribed circle"
         self.viewer_widget.axis_z.title = "Axe Z : A pseudo inscribed circle / A pseudo circumscribed circle"
         self.viewer_widget.title = "KlustR KNN Classification"
+        self.viewer_widget.axis_y.range = (0.0, 1.0)
+        self.viewer_widget.axis_x.range = (0.0, 1.0)
+        self.viewer_widget.axis_z.range = (0.0, 1.0)
 
     @Slot()
     def open_dialog(self, title: str, source: str):
