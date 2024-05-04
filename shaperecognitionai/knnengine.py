@@ -1,13 +1,14 @@
 import numpy as np
 import numpy.typing as npt
 
+import tie_breaker
 from feature_extraction import FeatureExtractor
 from tie_breaker import neighbor_tie_breaker
 
 
 class KNNEngine:
     def __init__(self):
-        self.__k = 5
+        self.__k = 2
         self.__distance = 1
         self.__raw_data = None  # vide au debut, property pour modif quand selection
         self.__processed_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
@@ -32,6 +33,22 @@ class KNNEngine:
     def img_data(self, data):  # ajouter le type hinting
         self.__img_data = data
 
+    @property
+    def processed_data(self):
+        return self.__processed_data
+
+    @processed_data.setter
+    def processed_data(self, data):  # ajouter le type hinting
+        self.__processed_data = data
+
+    @property
+    def processed_img_data(self):
+        return self.processed_img_data
+
+    @processed_img_data.setter
+    def processed_img_data(self, data):  # ajouter le type hinting
+        self.processed_img_data = data
+
     def __lookup_categorie(self, tag: str) -> int:
         if tag not in self.__known_categories:
             self.__known_categories.append(tag)
@@ -46,11 +63,16 @@ class KNNEngine:
             self.__processed_data[i, :len(metrics)] = metrics
             self.__processed_data[i, -1] = self.__lookup_categorie(data[0])
         print("METRIQUES DATASET", self.__processed_data)
+        return self.__processed_data
     # print(self.__known_categories)
+
+    def get_known_forms(self):
+        return self.__known_categories
 
     def extract_image_data(self):
         metrics = FeatureExtractor.get_metrics(self.__img_data[1])
         self.__processed_img_data[:len(metrics)] = metrics
+        return self.__processed_img_data
 
     # print("METRIQUES IMAGE", self.__processed_img_data)
 
@@ -59,15 +81,14 @@ class KNNEngine:
         img_metrics = self.__processed_img_data[:-1]
         distance = []
         for i, data in enumerate(data_metrics):
-            squares = np.square(data - img_metrics)
-            squares_sum = np.sum(squares)
+            squares_sum = tie_breaker.euclidean_distance_squared(data, img_metrics)
             distance.append(squares_sum)
         self.__metrics_distance = np.array(distance)
         print(self.__metrics_distance)
-        self.classify()
+        return self.classify()
 
     def get_neighbor(self):
-        return np.argsort(self.__metrics_distance)[:self.__k + 1]
+        return np.argsort(self.__metrics_distance)[:self.__k]
 
     def classify(self):
         neighbor = self.get_neighbor()

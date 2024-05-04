@@ -1,15 +1,16 @@
 import sys
 import numpy
+import numpy as np
 
 from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtGui import QScreen, QPixmap, QImage
+from PySide6.QtGui import QScreen, QPixmap, QImage, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
 from db_credential import PostgreSQLCredential
 from klustr_dao import PostgreSQLKlustRDAO
-from scatter_3d_viewer import QScatter3dViewer
+from scatter_3d_viewer import QScatter3dViewer, QColorSequence
 from klustr_utils import *
 from klustr_dao import *
 from knnengine import KNNEngine
@@ -111,7 +112,7 @@ class QClassificationWindow(QMainWindow):
         self.__window_height = 768
         self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
-
+        self.__color_sequence = QColorSequence()
 
         # Gestion DB
         credential = PostgreSQLCredential(password='AAAaaa123')
@@ -127,14 +128,15 @@ class QClassificationWindow(QMainWindow):
         
         mylist2 = [klustr_dao.image_from_label(mylist[i[0]]) for i in __data]
         print(mylist2)"""
-        
+
         __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
-        
+
         self.__dataset = QGroupBox("Dataset")
         self.__dataset_layout = QVBoxLayout(self.__dataset)
         self.__dataset_dropmenu = QComboBox()
-        self.__dataset_dropmenu.insert_items(0,__items)
-        self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
+        self.__dataset_dropmenu.insert_items(0, __items)
+        self.__dataset_dropmenu.activated.connect(
+            lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
         self.__dataset_group_layout = QHBoxLayout(self.__dataset)
         self.__dataset_group1 = QGroupBox("Included in Data Set")
         self.__dataset_group2 = QGroupBox("Transformation")
@@ -143,48 +145,45 @@ class QClassificationWindow(QMainWindow):
         self.__dataset_layout.add_widget(self.__dataset_dropmenu)
         self.__dataset_layout.add_layout(self.__dataset_group_layout)
 
-
-        
         self.__single_test = QGroupBox("Single Test")
         self.__single_test_layout = QVBoxLayout(self.__single_test)
         self.__single_test_dropmenu = QComboBox()
         self.__single_test_view_label = QLabel()
-        self.__single_test_view_label.style_sheet =  'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }' # 354A64
+        self.__single_test_view_label.style_sheet = 'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }'  # 354A64
         self.__single_test_view_label.alignment = Qt.AlignCenter
         self.__single_test_button = QPushButton("Classify", self)
-        self.__single_test_button.clicked.connect(lambda: self.classify_image(self.__single_test_dropmenu.current_index))
+        self.__single_test_button.clicked.connect(
+            lambda: self.classify_image(self.__single_test_dropmenu.current_index))
         self.__single_test_result_label = QLabel()
         self.__single_test_layout.add_widget(self.__single_test_dropmenu)
         self.__single_test_layout.add_widget(self.__single_test_view_label)
         self.__single_test_layout.add_widget(self.__single_test_button)
 
-        
         self.__parameters = QGroupBox("KNN parameters")
         self.__parameters_layout = QVBoxLayout(self.__parameters)
         self.__parameters_layout.add_widget(QParameterPicker(self.__k, self.__max_distance))
-        
+
         self.about_button = QPushButton("About", self)
-        self.about_button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt")) #LE ficher n'existe pas 
-        
+        self.about_button.clicked.connect(
+            lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))  # LE ficher n'existe pas
 
         menu_layout = QVBoxLayout()
         menu_layout.add_widget(self.__dataset)
         menu_layout.add_widget(self.__single_test)
         menu_layout.add_widget(self.__parameters)
         menu_layout.add_widget(self.about_button)
-        #menu_layout.add_widget(
+        # menu_layout.add_widget(
         #    QParameterPicker(self.__k, self.__max_distance))
-        #menu_layout.add_widget(self.about_button)
-        #menu_widget = QWidget()
-        #menu_widget.set_layout(menu_layout)
-
+        # menu_layout.add_widget(self.about_button)
+        # menu_widget = QWidget()
+        # menu_widget.set_layout(menu_layout)
 
         # Combinaison du menu et du widget viewer
         central_widget = QWidget()
         central_layout = QHBoxLayout()
-        viewer_widget = QScatter3dViewer(parent=central_widget)
+        self.viewer_widget = QScatter3dViewer(parent=central_widget)
         central_layout.add_layout(menu_layout)
-        central_layout.add_widget(viewer_widget)
+        central_layout.add_widget(self.viewer_widget)
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
 
@@ -202,6 +201,7 @@ class QClassificationWindow(QMainWindow):
         self.__current_data_set = self.__klustr_dao.image_from_dataset(dataset_name, False)
         self.set_raw_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
+        self.test(dataset_name)
 
     def set_single_test_dropmenu(self, data_set):
         items = [i[3] for i in data_set]
@@ -211,7 +211,7 @@ class QClassificationWindow(QMainWindow):
     @Slot()
     def set_raw_data(self, dataset_name: str):
         # Ajoute les points
-        query_result = self.__klustr_dao.image_from_dataset(dataset_name, False)
+        query_result = self.__klustr_dao.image_from_dataset(dataset_name, True)
         raw_data = []
         for result in query_result:
             tag = result[1]
@@ -220,7 +220,8 @@ class QClassificationWindow(QMainWindow):
             result_nparray = result_nparray ^ 1
             raw_data.append((tag, result_nparray))
         self.__knn_engine.raw_data = raw_data
-        self.__knn_engine.processed_data = self.__knn_engine.extract_set_data()
+        set_data = self.__knn_engine.extract_set_data()
+        self.add_points(set_data, True)
 
     @Slot()
     def classify_image(self, current_index):
@@ -230,8 +231,42 @@ class QClassificationWindow(QMainWindow):
         result_nparray = ndarray_from_qimage_argb32(result_img)
         result_nparray = result_nparray ^ 1
         self.__knn_engine.img_data = (tag, result_nparray)
-        self.__knn_engine.processed_image_data = self.__knn_engine.extract_image_data()
-        self.__knn_engine.calculate_distance()
+        extracted_image_data = self.__knn_engine.extract_image_data()
+        #self.add_points(extracted_image_data, False)
+        return self.__knn_engine.calculate_distance()
+
+    def add_points(self, set_data, is_cloud):
+        if is_cloud:
+            sets = []
+            for i in range(len(self.__knn_engine.get_known_forms())):
+                indices = np.where(set_data[:, 3] == i)[0]
+                valid_rows_view = set_data[indices]
+                sets.append(valid_rows_view)
+                print("valid_rows index", i, valid_rows_view[:, :-1])
+            self.viewer_widget.clear()
+            for i in range(len(self.__knn_engine.get_known_forms())):
+                self.viewer_widget.add_serie(sets[i][:, :-1], self.__color_sequence.next(),
+                                             title=self.__knn_engine.get_known_forms()[i])
+
+        else:
+            self.viewer_widget.remove_serie('unkown shape')
+            self.viewer_widget.add_serie(set_data[:-1].reshape(1, -1), QColor("black"), title="unkown shape")
+
+    def test(self, dataset_name):
+        file = open("test_results.txt", "a")
+        file.write(dataset_name + "\n")
+        compteur = 0
+        for i, data in enumerate(self.__current_data_set):
+            response = self.classify_image(i)
+            if response == data[1]:
+                compteur += 1
+            else:
+                file.write(str(i))
+                file.write(': ' + data[1])
+                file.write(' wrongfully identified as ' + response + '\n')
+        file.write(str(compteur) + ' GOOD OUT OF' + str(
+            len(self.__current_data_set)) + '\n')
+
 
 def main():
     app = QApplication(sys.argv)
