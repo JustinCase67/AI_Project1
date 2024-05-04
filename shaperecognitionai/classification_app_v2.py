@@ -39,29 +39,30 @@ class QParameter(QWidget):
         self.parameter_scroll_bar = QScrollBar()
         self.parameter_value = QLabel()
         self.parameter_title = parameter.name
+        self.parameter_scale = parameter.scale
 
         parameter_layout = QHBoxLayout()
         parameter_layout.add_layout(
             self.__create_parameter(parameter,
                                     self.parameter_scroll_bar,
-                                    self.parameter_value))
+                                    self.parameter_value,
+                                    self.parameter_scale))
 
         self.set_layout(parameter_layout)
 
 
     def __create_parameter(self, parameter, scroll_bar: QScrollBar,
-                           value_label: QLabel) -> QHBoxLayout:
+                           value_label: QLabel, scale: float) -> QHBoxLayout:
         parameter_label = QLabel()
         parameter_label.text = parameter.name + " = "
         scroll_bar.orientation = Qt.Horizontal
-        scroll_bar.set_range(parameter.min,
-                             parameter.max)  # à changer pour des valeurs qui varient
-        scroll_bar.value = parameter.current  # à changer pour une valeur par défaut
-        scroll_bar.minimum_width = 50  # à changer pour un calcul
-        value_label.set_num(scroll_bar.value)
-        scroll_bar.valueChanged.connect(value_label.set_num)
+        scroll_bar.set_range(parameter.min * scale,
+                             parameter.max * scale)
+        scroll_bar.value = parameter.current * scale
+        value_label.set_num(scroll_bar.value / scale)
+        scroll_bar.valueChanged.connect(lambda value: value_label.set_num(value / scale))
         scroll_bar.valueChanged.connect(
-            lambda value: self.set_current(parameter, value))
+            lambda value: self.set_current(parameter, value, scale))
 
         layout = QHBoxLayout()
         layout.add_widget(parameter_label)
@@ -71,8 +72,8 @@ class QParameter(QWidget):
         return layout
 
     @Slot()
-    def set_current(self, parameter: Parameter, value: int):
-        parameter.current = value
+    def set_current(self, parameter: Parameter, value: int, scale: float):
+        parameter.current = value / scale
 
 
 class QClassificationWindow(QMainWindow):

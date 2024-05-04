@@ -8,7 +8,7 @@ from feature_extraction import FeatureExtractor
 class KNNEngine:
     def __init__(self):
         self.__k = Parameter("K", 1, 10, 3)
-        self.__max_distance = Parameter("Max distance", 0, 1, 1)
+        self.__max_distance = Parameter("Max distance", 0, 1, 0.5, 100.0)
         self.__training_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
         self.__known_categories = []
 
@@ -58,9 +58,14 @@ class KNNEngine:
         return metrics_distance
 
     def get_neighbor(self, distances):
+        print('CURRENT DIS', self.__max_distance.current)
+        print('ALL', distances)
         acceptable_distances = np.where(
             distances <= self.__max_distance.current)
-        return np.argsort(acceptable_distances)[:self.__k.current]
+        try:
+            return np.argsort(acceptable_distances)[:self.__k.current]
+        except:
+            return None
 
     def get_tags_index(self, neighbor):
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
@@ -82,7 +87,7 @@ class KNNEngine:
             else:
                 result = unique_values_same_occurrences[0]
             return self.__known_categories[result]
-        except IndexError:
+        except:
             return "Undefined"
 
     def tie_breaker(self, test_image, neighbor, ties):
@@ -98,11 +103,16 @@ class KNNEngine:
 
 
 class Parameter:
-    def __init__(self, name: str, min: int, max: int, current: int):
+    def __init__(self, name: str, min: int, max: int, current: int, scale: float = 1.0):
         self.__name = name
         self.__min = min
         self.__max = max
         self.__current = current
+        self.__scale = scale
+
+    @property
+    def scale(self):
+        return self.__scale
 
     @property
     def current(self):
