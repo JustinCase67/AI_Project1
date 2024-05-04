@@ -107,6 +107,7 @@ class QClassificationWindow(QMainWindow):
         self.__current_data_set = None
         # fin des valeurs de test
         self.__window_title = "Klustr KNN Classification"
+        self.set_window_title(self.__window_title)
         self.__window_width = 1024
         self.__window_height = 768
         self.resize(self.__window_width, self.__window_height)
@@ -114,7 +115,7 @@ class QClassificationWindow(QMainWindow):
 
 
         # Gestion DB
-        credential = PostgreSQLCredential(password='AAAaaa123')
+        credential = PostgreSQLCredential(password='Ravens522!')
         self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu
@@ -137,11 +138,92 @@ class QClassificationWindow(QMainWindow):
         self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
         self.__dataset_group_layout = QHBoxLayout(self.__dataset)
         self.__dataset_group1 = QGroupBox("Included in Data Set")
+        self.__dataset_group1_layout = QVBoxLayout()  # Layout vertical pour le groupe
+
+        # Informations à afficher
+        self.__info_layout = QVBoxLayout(self.__dataset_group1)  # Layout en grille pour aligner les étiquettes et les valeurs
+
+
+        # Category count
+        self.__info_category = QWidget()
+        self.__info_layout.add_widget(self.__info_category)
+        self.__info_category_layout = QHBoxLayout(self.__info_category)
+        category_count_label = QLabel("Category count:")
+        category_count_value = QLabel("9")
+        self.__info_category_layout.add_widget(category_count_label)
+        self.__info_category_layout.add_widget(category_count_value)
+
+        # Training image count
+        self.__info_training = QWidget()
+        self.__info_layout.add_widget(self.__info_training)
+        self.__info_training_layout = QHBoxLayout(self.__info_training)
+        training_count_label = QLabel("Training image count:")
+        training_count_value = QLabel("126")
+        self.__info_training_layout.add_widget(training_count_label)
+        self.__info_training_layout.add_widget(training_count_value)
+
+        # Test image count
+        self.__info_test = QWidget()
+        self.__info_layout.add_widget(self.__info_test)
+        self.__info_test_layout = QHBoxLayout(self.__info_test)
+        test_count_label = QLabel("Test image count:")
+        test_count_value = QLabel("189")
+        self.__info_test_layout.add_widget(test_count_label)
+        self.__info_test_layout.add_widget(test_count_value)
+
+        # Total image count
+        self.__info_total = QWidget()
+        self.__info_layout.add_widget(self.__info_total)
+        self.__info_total_layout = QHBoxLayout(self.__info_total)
+        total_count_label = QLabel("Total image count:")
+        total_count_value = QLabel("315")
+        self.__info_total_layout.add_widget(total_count_label)
+        self.__info_total_layout.add_widget(total_count_value)
+
+        self.__dataset_group1_layout.add_layout(self.__info_layout)
+        self.__dataset_group1.set_layout(self.__dataset_group1_layout)
+
+        #Under Transformation
         self.__dataset_group2 = QGroupBox("Transformation")
+        self.__dataset_group2_layout = QVBoxLayout()
+        self.__transformation_layout = QVBoxLayout(self.__dataset_group2)
+
+        # Translation
+        self.__translation = QWidget()
+        self.__transformation_layout.add_widget(self.__translation)
+        self.__translation_layout = QHBoxLayout(self.__translation)
+        translated_label = QLabel("Translated:")
+        bool_value = QLabel("True")
+        self.__translation_layout.add_widget(translated_label)
+        self.__translation_layout.add_widget(bool_value)
+
+
+        #Rotation
+        self.__rotation = QWidget()
+        self.__transformation_layout.add_widget(self.__rotation)
+        self.__rotation_layout = QHBoxLayout(self.__rotation)
+        rotated_label = QLabel("Rotated :")
+        bool_value = QLabel("True")
+        self.__rotation_layout.add_widget(rotated_label)
+        self.__rotation_layout.add_widget(bool_value)
+
+        # Scaled
+        self.__scale = QWidget()
+        self.__transformation_layout.add_widget(self.__scale)
+        self.__scale_layout = QHBoxLayout(self.__scale)
+        scaled_label = QLabel("Scaled :")
+        bool_value = QLabel("True")
+        self.__scale_layout.add_widget(scaled_label)
+        self.__scale_layout.add_widget(bool_value)
+#----------------------------------------------------------------------------------
+
         self.__dataset_group_layout.add_widget(self.__dataset_group1)
         self.__dataset_group_layout.add_widget(self.__dataset_group2)
         self.__dataset_layout.add_widget(self.__dataset_dropmenu)
         self.__dataset_layout.add_layout(self.__dataset_group_layout)
+
+
+
 
 
         
