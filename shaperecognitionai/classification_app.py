@@ -115,7 +115,7 @@ class QClassificationWindow(QMainWindow):
         self.__color_sequence = QColorSequence()
 
         # Gestion DB
-        credential = PostgreSQLCredential(password='firen123')
+        credential = PostgreSQLCredential(password='AAAaaa123') #change to AAAaaa123 or something else
         self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu

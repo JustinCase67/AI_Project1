@@ -165,10 +165,9 @@ class FeatureExtractor:
         return left_view, right_view, up_view, down_view
 
     @staticmethod
-    def get_closest_distance_from_centroid_2d(array, centroid_x, centroid_y):
+    def get_closest_distance_from_point_2d(array, centroid_x, centroid_y):
         diagonals = FeatureExtractor.get_diagonals_from_point(array, centroid_x, centroid_y)
         lines = FeatureExtractor.get_views_from_point(array, centroid_x, centroid_y)
-        print(array[centroid_x,centroid_y])
         nearest_one_index = []
         for i in range(len(diagonals)):
             nearest_one_index.append(np.argmax(diagonals[i][:] == (1 if array[centroid_x, centroid_y] == 0 else 0)))
@@ -177,34 +176,43 @@ class FeatureExtractor:
             nearest_one_index.append(np.argmax(lines[y][:] == (1 if array[centroid_x, centroid_y] == 0 else 0)))
         np_indexes = np.array(nearest_one_index)
         min_above_zero = np.argmin(np_indexes[np_indexes > 0])
-        return nearest_one_index, min_above_zero
+        return nearest_one_index[min_above_zero]
 
     @staticmethod
     def get_metrics(img):
         points = FeatureExtractor.get_extreme_points_2D(img)
-        distances = FeatureExtractor.distances_from_a_point(points, FeatureExtractor.centroid(img))
+        centroid = FeatureExtractor.centroid(img)
+        centroid_x , centroid_y = centroid
+        print(centroid)
+        r_centroid_x = round(centroid_x)
+        r_centroid_y = round(centroid_y)
+        distances = FeatureExtractor.distances_from_a_point(points, centroid)
         max_distance = FeatureExtractor.get_max_distance(distances)
         min_distance = FeatureExtractor.get_min_distance(distances)
         ratio_perimeter_area = FeatureExtractor.complexity(img)
         ratio_area_form_circle = FeatureExtractor.ratio_area(img, max_distance)
         #ratio_distances_min_max = FeatureExtractor.ratio_min_max_distances(max_distance, min_distance)
 
-        ratio_tiny_circle_big_circle = FeatureExtractor.area_of_circle(min_distance) / FeatureExtractor.area_of_circle(max_distance)
+        #ratio_tiny_circle_big_circle = FeatureExtractor.area_of_circle(min_distance) / FeatureExtractor.area_of_circle(max_distance)
+        min_pixel_from_point = FeatureExtractor.get_closest_distance_from_point_2d(img, r_centroid_x, r_centroid_y)
 
+        ratio_tiny_circle_big_circle = FeatureExtractor.area_of_circle(min_pixel_from_point) / FeatureExtractor.area_of_circle(max_distance)
         return ratio_perimeter_area, ratio_area_form_circle, ratio_tiny_circle_big_circle
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #img = FeatureExtractor.create_image((10, 10))
-    #print(img)
-    #FeatureExtractor.draw_rectangle(img, (2, 2), (4, 8))
-    #FeatureExtractor.draw_rectangle(img, (4, 5), (8, 7))
-    #print(img)
-    #img[1, 3] = 1
-    #print(img)
-    #print(FeatureExtractor.get_metrics(img))
-    # Example 6x6 array with different numbers
+    img = FeatureExtractor.create_image((10, 10))
+    print(img)
+    FeatureExtractor.draw_rectangle(img, (2, 2), (4, 8))
+    FeatureExtractor.draw_rectangle(img, (4, 5), (8, 7))
+    print(img)
+    img[1, 3] = 1
+    centroid = FeatureExtractor.centroid(img)
+    print(centroid[0], centroid[1])
+    print(img)
+    print(FeatureExtractor.get_metrics(img))
+    #Example 6x6 array with different numbers
     arr = np.array([[1, 0, 3, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0],
                     [5, 0, 0, 0, 0, 4],
@@ -237,11 +245,9 @@ if __name__ == '__main__':
     print("Diagonal 2 (Anti-diagonal right :):", result[1])
     print("Diagonal 3(Anti-diagonal left):", result[2])
     print("Diagonal 4: (Main diagonal left) :", result[3])
-    npnear = np.argmax(result == 1, axis=0)
-    print(npnear)
     nearest_one_index = []
     for i in range(4):
-        nearest_one_index.append(np.argmax(result[i][:] == 1))
+        nearest_one_index.append(np.argmax(result[i][:] == (1 if arr2[start_row, start_col] == 0 else 0)))
 
     for i in range(4):
         print("Nearest one at Index ", i , " : ", nearest_one_index[i])
@@ -255,9 +261,9 @@ if __name__ == '__main__':
 
     nearest_one_index = []
     for i in range(4):
-        nearest_one_index.append(np.argmax(result[i][:] == 1))
+        nearest_one_index.append(np.argmax(result[i][:] == (1 if arr2[start_row, start_col] == 0 else 0)))
 
     for i in range(4):
         print("Nearest one at Index ", i , " : ", nearest_one_index[i])
-    result = FeatureExtractor.get_closest_distance_from_centroid_2d(arr2,start_row,start_col)
+    result = FeatureExtractor.get_closest_distance_from_point_2d(arr2,start_row,start_col)
     print(result)
