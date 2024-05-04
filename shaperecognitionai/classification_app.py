@@ -240,6 +240,7 @@ class QClassificationWindow(QMainWindow):
         self.set_raw_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
         self.set_thumbnail(self.__single_test_dropmenu.current_index)
+        self.test(dataset_name)
 
     def set_single_test_dropmenu(self, data_set):
         items = [i[3] for i in data_set]

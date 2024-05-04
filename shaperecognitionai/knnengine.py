@@ -8,7 +8,7 @@ from tie_breaker import neighbor_tie_breaker
 
 class KNNEngine:
     def __init__(self):
-        self.__k = 3
+        self.__k = 4
         self.__distance = 1
         self.__raw_data = None  # vide au debut, property pour modif quand selection
         self.__processed_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
