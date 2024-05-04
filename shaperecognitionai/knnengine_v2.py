@@ -58,8 +58,9 @@ class KNNEngine:
         return metrics_distance
 
     def get_neighbor(self, distances):
-        print('CURRENT K', self.__k.current)
-        return np.argsort(distances)[:self.__k.current]
+        acceptable_distances = np.where(
+            distances <= self.__max_distance.current)
+        return np.argsort(acceptable_distances)[:self.__k.current]
 
     def get_tags_index(self, neighbor):
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
@@ -70,15 +71,19 @@ class KNNEngine:
     def classify(self, test_image):
         distances = self.assess_data_distance(test_image)
         neighbor = self.get_neighbor(distances)
-        tags_index = self.get_tags_index(neighbor)
-        unique_values, counts = np.unique(tags_index, return_counts=True)
-        unique_values_same_occurrences = unique_values[counts == counts.max()]
-        if len(unique_values_same_occurrences) > 1:
-            result = self.tie_breaker(test_image, neighbor,
-                                      unique_values_same_occurrences)
-        else:
-            result = unique_values_same_occurrences[0]
-        return self.__known_categories[result]
+        try:
+            tags_index = self.get_tags_index(neighbor)
+            unique_values, counts = np.unique(tags_index, return_counts=True)
+            unique_values_same_occurrences = unique_values[
+                counts == counts.max()]
+            if len(unique_values_same_occurrences) > 1:
+                result = self.tie_breaker(test_image, neighbor,
+                                          unique_values_same_occurrences)
+            else:
+                result = unique_values_same_occurrences[0]
+            return self.__known_categories[result]
+        except IndexError:
+            return "Undefined"
 
     def tie_breaker(self, test_image, neighbor, ties):
         metrics = []
@@ -90,6 +95,7 @@ class KNNEngine:
         distances = util.distance_from_centroid(metrics, tags,
                                                 test_image[:-1])
         return np.argmin(distances)
+
 
 class Parameter:
     def __init__(self, name: str, min: int, max: int, current: int):
