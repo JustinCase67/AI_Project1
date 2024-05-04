@@ -215,6 +215,7 @@ class QClassificationWindow(QMainWindow):
         thumbnail = self.__current_data_set[index][6]
         img = qimage_argb32_from_png_decoding(thumbnail)
         self.__single_test_view_label.pixmap = QPixmap.from_image(img)
+        self.__single_test_result.text = "not classified" # devrait etre ailleurs
 
     @Slot()
     def update_data_set(self, dataset_name):
@@ -253,7 +254,8 @@ class QClassificationWindow(QMainWindow):
         result_nparray = result_nparray ^ 1
         self.__knn_engine.img_data = (tag, result_nparray)
         self.__knn_engine.processed_image_data = self.__knn_engine.extract_image_data()
-        self.__knn_engine.calculate_distance()
+        result = self.__knn_engine.calculate_distance()
+        self.__single_test_result.text = result
 
 def main():
     app = QApplication(sys.argv)
