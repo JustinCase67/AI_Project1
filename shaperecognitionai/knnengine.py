@@ -7,7 +7,7 @@ from tie_breaker import neighbor_tie_breaker
 
 class KNNEngine:
     def __init__(self):
-        self.__k = 5
+        self.__k = 3
         self.__distance = 1
         self.__raw_data = None  # vide au debut, property pour modif quand selection
         self.__processed_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
@@ -67,7 +67,7 @@ class KNNEngine:
         return self.classify()
 
     def get_neighbor(self):
-        return np.argsort(self.__metrics_distance)[:self.__k + 1]
+        return np.argsort(self.__metrics_distance)[:self.__k]
 
     def classify(self):
         neighbor = self.get_neighbor()

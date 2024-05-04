@@ -102,6 +102,13 @@ class QParameter(QWidget):
         parameter.current = value
         print(parameter.current)
 
+class QStat(QWidget):
+    def __init__(self, stat_name: str):
+        super.__init__()
+        self.__stat_label = QLabel()
+        self.__stat_value = QLabel()
+        self.__stat_label.text = stat_name + " = "
+
 
 class QClassificationWindow(QMainWindow):
     def __init__(self):
@@ -123,7 +130,7 @@ class QClassificationWindow(QMainWindow):
         self.__klustr_dao = PostgreSQLKlustRDAO(credential)
 
         # Génération du bouton About et du menu
-        __data = self.__klustr_dao.available_datasets
+        self.__data = self.__klustr_dao.available_datasets
         """mylist = [klustr_dao.labels_from_dataset(i[1]) for i in __data]
         print(mylist)
         
@@ -133,7 +140,7 @@ class QClassificationWindow(QMainWindow):
         mylist2 = [klustr_dao.image_from_label(mylist[i[0]]) for i in __data]
         print(mylist2)"""
         
-        __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
+        __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in self.__data]
         
         self.__dataset = QGroupBox("Dataset")
         self.__dataset_layout = QVBoxLayout(self.__dataset)
@@ -141,6 +148,7 @@ class QClassificationWindow(QMainWindow):
         self.__dataset_dropmenu.insert_items(0,__items)
         self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
         self.__dataset_group_layout = QHBoxLayout(self.__dataset)
+        # a encapsuler mieux
         self.__dataset_group1 = QGroupBox("Included in Data Set")
         self.__dataset_group2 = QGroupBox("Transformation")
         self.__dataset_group_layout.add_widget(self.__dataset_group1)
@@ -149,7 +157,7 @@ class QClassificationWindow(QMainWindow):
         self.__dataset_layout.add_layout(self.__dataset_group_layout)
 
 
-        
+
         self.__single_test = QGroupBox("Single Test")
         self.__single_test_layout = QVBoxLayout(self.__single_test)
         self.__single_test_dropmenu = QComboBox()
