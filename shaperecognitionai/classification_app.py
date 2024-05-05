@@ -1,7 +1,7 @@
 import sys
 import numpy
 
-from PySide6.QtCore import Qt, Slot, Signal, QString
+from PySide6.QtCore import Qt, Slot, Signal
 from PySide6.QtGui import QScreen, QPixmap, QImage
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
@@ -64,10 +64,7 @@ class QParameter(QWidget):
         self.__parameter_value = QLabel()
 
         parameter_layout = QHBoxLayout()
-        parameter_layout.add_layout(
-            self.__create_parameter(parameter,
-                                    self.__parameter_scroll_bar,
-                                    self.__parameter_value))
+        parameter_layout.add_layout(self.__create_parameter(parameter,self.__parameter_scroll_bar,self.__parameter_value))
 
         self.set_layout(parameter_layout)
 
@@ -79,7 +76,7 @@ class QParameter(QWidget):
         scroll_bar.set_range(parameter.min,
                              parameter.max)  # à changer pour des valeurs qui varient
         scroll_bar.value = parameter.current  # à changer pour une valeur par défaut
-        scroll_bar.minimum_width = 50  # à changer pour un calcul
+        scroll_bar.minimum_width = 250  # à changer pour un calcul
         value_label.set_num(scroll_bar.value)
         scroll_bar.valueChanged.connect(value_label.set_num)
         scroll_bar.valueChanged.connect(
@@ -105,173 +102,10 @@ class QClassificationWindow(QMainWindow):
         self.__k = Parameter("K", 5, 20, 0)
         self.__max_distance = Parameter("Max distance", 0, 100, 0)
         self.__current_data_set = None
-        # fin des valeurs de test
-        self.__window_title = "Klustr KNN Classification"
-        self.set_window_title(self.__window_title)
-        self.__window_width = 1024
-        self.__window_height = 768
-        self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
         self.__data_info = []
-
-
-        # Gestion DB
-        credential = PostgreSQLCredential(password='Ravens522!')
-        self.__klustr_dao = PostgreSQLKlustRDAO(credential)
-
-        # Génération du bouton About et du menu
-        __data = self.__klustr_dao.available_datasets
-        """mylist = [klustr_dao.labels_from_dataset(i[1]) for i in __data]
-        print(mylist)
-        
-        mylist2 = [(klustr_dao.image_from_dataset(i[1], False), klustr_dao.image_from_dataset(i[1], True)) for i in __data]
-        print(mylist2)
-        
-        mylist2 = [klustr_dao.image_from_label(mylist[i[0]]) for i in __data]
-        print(mylist2)"""
-        
-        __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
-        
-        self.__dataset = QGroupBox("Dataset")
-        self.__dataset_layout = QVBoxLayout(self.__dataset)
-        self.__dataset_dropmenu = QComboBox()
-        self.__dataset_dropmenu.insert_items(0,__items)
-        #self.__dataset_dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
-        self.__dataset_dropmenu.activated.connect(lambda index: self.get_data_info(index))
-        self.__dataset_dropmenu.activated.connect(lambda: self.update_labels())
-        self.__dataset_group_layout = QHBoxLayout(self.__dataset)
-        self.__dataset_group1 = QGroupBox("Included in Data Set")
-        self.__dataset_group1_layout = QVBoxLayout()  # Layout vertical pour le groupe
-
-        # Informations à afficher
-        self.__info_layout = QVBoxLayout(self.__dataset_group1)  # Layout en grille pour aligner les étiquettes et les valeurs
-
-
-        # Category count
-        self.__info_category = QWidget()
-        self.__info_layout.add_widget(self.__info_category)
-        self.__info_category_layout = QHBoxLayout(self.__info_category)
-        self.category_count_label = QLabel("Category count:")
-        self.category_count_value = QLabel(self)
-        self.__info_category_layout.add_widget(self.category_count_label)
-        self.__info_category_layout.add_widget(self.category_count_value)
-
-        # Training image count
-        self.__info_training = QWidget()
-        self.__info_layout.add_widget(self.__info_training)
-        self.__info_training_layout = QHBoxLayout(self.__info_training)
-        training_count_label = QLabel("Training image count:")
-        training_count_value = QLabel()
-        self.__info_training_layout.add_widget(training_count_label)
-        self.__info_training_layout.add_widget(training_count_value)
-
-        # Test image count
-        self.__info_test = QWidget()
-        self.__info_layout.add_widget(self.__info_test)
-        self.__info_test_layout = QHBoxLayout(self.__info_test)
-        test_count_label = QLabel("Test image count:")
-        test_count_value = QLabel()
-        self.__info_test_layout.add_widget(test_count_label)
-        self.__info_test_layout.add_widget(test_count_value)
-
-        # Total image count
-        self.__info_total = QWidget()
-        self.__info_layout.add_widget(self.__info_total)
-        self.__info_total_layout = QHBoxLayout(self.__info_total)
-        total_count_label = QLabel("Total image count:")
-        total_count_value = QLabel()
-        self.__info_total_layout.add_widget(total_count_label)
-        self.__info_total_layout.add_widget(total_count_value)
-
-        self.__dataset_group1_layout.add_layout(self.__info_layout)
-        self.__dataset_group1.set_layout(self.__dataset_group1_layout)
-
-        #Under Transformation
-        self.__dataset_group2 = QGroupBox("Transformation")
-        self.__dataset_group2_layout = QVBoxLayout()
-        self.__transformation_layout = QVBoxLayout(self.__dataset_group2)
-
-        # Translation
-        self.__translation = QWidget()
-        self.__transformation_layout.add_widget(self.__translation)
-        self.__translation_layout = QHBoxLayout(self.__translation)
-        translated_label = QLabel("Translated:")
-        bool_value = QLabel("True")
-        self.__translation_layout.add_widget(translated_label)
-        self.__translation_layout.add_widget(bool_value)
-
-
-        #Rotation
-        self.__rotation = QWidget()
-        self.__transformation_layout.add_widget(self.__rotation)
-        self.__rotation_layout = QHBoxLayout(self.__rotation)
-        rotated_label = QLabel("Rotated :")
-        bool_value = QLabel("True")
-        self.__rotation_layout.add_widget(rotated_label)
-        self.__rotation_layout.add_widget(bool_value)
-
-        # Scaled
-        self.__scale = QWidget()
-        self.__transformation_layout.add_widget(self.__scale)
-        self.__scale_layout = QHBoxLayout(self.__scale)
-        scaled_label = QLabel("Scaled :")
-        bool_value = QLabel("True")
-        self.__scale_layout.add_widget(scaled_label)
-        self.__scale_layout.add_widget(bool_value)
-#----------------------------------------------------------------------------------
-
-        self.__dataset_group_layout.add_widget(self.__dataset_group1)
-        self.__dataset_group_layout.add_widget(self.__dataset_group2)
-        self.__dataset_layout.add_widget(self.__dataset_dropmenu)
-        self.__dataset_layout.add_layout(self.__dataset_group_layout)
-
-
-
-
-
-        
-        self.__single_test = QGroupBox("Single Test")
-        self.__single_test_layout = QVBoxLayout(self.__single_test)
-        self.__single_test_dropmenu = QComboBox()
-        self.__single_test_view_label = QLabel()
-        self.__single_test_view_label.style_sheet =  'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }' # 354A64
-        self.__single_test_view_label.alignment = Qt.AlignCenter
-        self.__single_test_button = QPushButton("Classify", self)
-        self.__single_test_button.clicked.connect(lambda: self.classify_image(self.__single_test_dropmenu.current_index))
-        self.__single_test_result_label = QLabel()
-        self.__single_test_layout.add_widget(self.__single_test_dropmenu)
-        self.__single_test_layout.add_widget(self.__single_test_view_label)
-        self.__single_test_layout.add_widget(self.__single_test_button)
-
-        
-        self.__parameters = QGroupBox("KNN parameters")
-        self.__parameters_layout = QVBoxLayout(self.__parameters)
-        self.__parameters_layout.add_widget(QParameterPicker(self.__k, self.__max_distance))
-        
-        self.about_button = QPushButton("About", self)
-        self.about_button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt")) #LE ficher n'existe pas 
-        
-
-        menu_layout = QVBoxLayout()
-        menu_layout.add_widget(self.__dataset)
-        menu_layout.add_widget(self.__single_test)
-        menu_layout.add_widget(self.__parameters)
-        menu_layout.add_widget(self.about_button)
-        #menu_layout.add_widget(
-        #    QParameterPicker(self.__k, self.__max_distance))
-        #menu_layout.add_widget(self.about_button)
-        #menu_widget = QWidget()
-        #menu_widget.set_layout(menu_layout)
-
-
-        # Combinaison du menu et du widget viewer
-        central_widget = QWidget()
-        central_layout = QHBoxLayout()
-        viewer_widget = QScatter3dViewer(parent=central_widget)
-        central_layout.add_layout(menu_layout)
-        central_layout.add_widget(viewer_widget)
-        central_widget.set_layout(central_layout)
-        self.set_central_widget(central_widget)
+        # fin des valeurs de test
+        self.__gui_maker()
 
     @Slot()
     def open_dialog(self, title: str, source: str):
@@ -339,7 +173,6 @@ class QClassificationWindow(QMainWindow):
     def get_data_info(self, index):
         selected_text = self.__dataset_dropmenu.item_text(index)
         for data in self.__klustr_dao.available_datasets:
-            print("in loop")
             if data[1] in selected_text:
                 self.__data_info = data
                 test = data
@@ -347,12 +180,210 @@ class QClassificationWindow(QMainWindow):
     @Slot()
     def update_labels(self):
         print("------------------------------------------------------------------")
-        print(self.__data_info[5])
-        test = str(self.__data_info[5])
-        test = QString(str(self.__data_info[5]))
-        self.category_count_value.selected_text(test)
-        self.update()
-        #self.category_count_value.adjust_size()
+        self.category_count_value.text = str(self.__data_info[5])
+        self.training_count_value.text = str(self.__data_info[6])
+        self.test_count_value.text = str(self.__data_info[7])
+        self.total_count_value.text = str(self.__data_info[8])
+        self.translated_bool_value.text = str(self.__data_info[2])
+        self.rotated_bool_value.text = str(self.__data_info[3])
+        self.scaled_bool_value.text = str(self.__data_info[4])
+
+    def __gui_maker(self):
+        self.set_window_title("Klustr KNN Classification")
+        self.resize(1024, 768)
+
+        self.__dataset = QGroupBox("Dataset")
+        self.__dataset_layout = QVBoxLayout(self.__dataset)
+        self.__dataset_dropmenu = self.__get_dropmenu()
+        self.__dataset_group_layout = QHBoxLayout(self.__dataset)
+        self.__dataset_group1 = self.__get_info()
+        self.__dataset_group2 = self.__get_transformation()
+        self.__dataset_group_layout.add_widget(self.__dataset_group1)
+        self.__dataset_group_layout.add_widget(self.__dataset_group2)
+        self.__dataset_layout.add_widget(self.__dataset_dropmenu)
+        self.__dataset_layout.add_layout(self.__dataset_group_layout)
+
+        self.__single_test = self.__create_single_test()
+
+        self.__parameters = self.__create_parameters_group()
+
+        self.about_button = self.__about_button()
+
+        menu_layout = QVBoxLayout()
+        menu_layout.add_widget(self.__dataset)
+        menu_layout.add_widget(self.__single_test)
+        menu_layout.add_widget(self.__parameters)
+        menu_layout.add_widget(self.about_button)
+        central_widget = QWidget()
+        central_layout = QHBoxLayout()
+        viewer_widget = QScatter3dViewer(parent=central_widget)
+        central_layout.add_layout(menu_layout)
+        central_layout.add_widget(viewer_widget)
+        central_widget.set_layout(central_layout)
+        self.set_central_widget(central_widget)
+
+
+    def __connect_signals(self):
+        #self.__dataset_dropmenu.activated.connect(self.__update_data_set_info)
+        #self.__single_test_button.clicked.connect(self.__classify_single_test)
+        pass
+
+    def __initialize_menu(self, layout):
+        pass
+    def ___dataset_group(self):
+        # Premier groupe de boîtes
+        group = QGroupBox("Dataset")
+        layout1 = QVBoxLayout(group1)
+
+
+        return group
+
+    def __get_dropmenu(self):
+        credential = PostgreSQLCredential(password='Ravens522!')
+        self.__klustr_dao = PostgreSQLKlustRDAO(credential)
+        __data = self.__klustr_dao.available_datasets
+        __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
+        dropmenu = QComboBox()
+        dropmenu.insert_items(0, __items)
+        dropmenu.activated.connect(lambda index: self.get_data_info(index))
+        dropmenu.activated.connect(lambda: self.update_labels())
+        return dropmenu
+
+    def __get_info(self):
+        group = QGroupBox("Included in Data Set")
+        group_layout = QVBoxLayout()  # Layout vertical pour le groupe
+        self.__info_layout = QVBoxLayout(group)  # Layout en grille pour aligner les étiquettes et les valeurs
+        self.__info_category = self.category_widget(self.__info_layout)
+        self.__info_training = self.training_widget(self.__info_layout)
+        self.__info_test = self.test_widget(self.__info_layout)
+        self.__info_total = self.total_widget(self.__info_layout)
+        group_layout.add_layout(self.__info_layout)
+        group.set_layout(group_layout)
+        return group
+
+    def category_widget(self, layout):
+        category = QWidget()
+        layout.add_widget(category)
+        category_layout = QHBoxLayout(category)
+        category_count_label = QLabel("Category count:")
+        self.category_count_value = QLabel(self)
+        category_layout.add_widget(category_count_label)
+        category_layout.add_widget(self.category_count_value)
+        return category
+
+    def training_widget(self, layout):
+        training = QWidget()
+        layout.add_widget(training)
+        training_layout = QHBoxLayout(training)
+        training_count_label = QLabel("Training image count:")
+        self.training_count_value = QLabel()
+        training_layout.add_widget(training_count_label)
+        training_layout.add_widget(self.training_count_value)
+        return training
+
+    def test_widget(self, layout):
+        test = QWidget()
+        layout.add_widget(test)
+        test_layout = QHBoxLayout(test)
+        test_count_label = QLabel("Test image count:")
+        self.test_count_value = QLabel()
+        test_layout.add_widget(test_count_label)
+        test_layout.add_widget(self.test_count_value)
+        return test
+
+    def total_widget(self, layout):
+        total = QWidget()
+        layout.add_widget(total)
+        total_layout = QHBoxLayout(total)
+        total_count_label = QLabel("Total image count:")
+        self.total_count_value = QLabel()
+        total_layout.add_widget(total_count_label)
+        total_layout.add_widget(self.total_count_value)
+        return total
+
+    def __get_transformation(self):
+        group = QGroupBox("Transformation")
+        group_layout = QVBoxLayout()
+        self.__transformation_layout = QVBoxLayout(group)
+        self.__translation = self.translation_widget(self.__transformation_layout)
+        self.__rotation = self.rotation_widget(self.__transformation_layout)
+        self.__scale = self.scale_widget(self.__transformation_layout)
+        group_layout.add_layout(self.__info_layout)
+        group.set_layout(group_layout)
+        return group
+
+    def translation_widget(self, layout):
+        translation = QWidget()
+        layout.add_widget(translation)
+        translation_layout = QHBoxLayout(translation)
+        translated_label = QLabel("Translated:")
+        self.translated_bool_value = QLabel()
+        translation_layout.add_widget(translated_label)
+        translation_layout.add_widget(self.translated_bool_value)
+        return translation
+
+    def rotation_widget(self, layout):
+        rotation = QWidget()
+        layout.add_widget(rotation)
+        rotation_layout = QHBoxLayout(rotation)
+        rotated_label = QLabel("Rotated :")
+        self.rotated_bool_value = QLabel()
+        rotation_layout.add_widget(rotated_label)
+        rotation_layout.add_widget(self.rotated_bool_value)
+        return rotation
+
+    def scale_widget(self, layout):
+        scale = QWidget()
+        layout.add_widget(scale)
+        scale_layout = QHBoxLayout(scale)
+        scaled_label = QLabel("Scaled :")
+        self.scaled_bool_value = QLabel()
+        scale_layout.add_widget(scaled_label)
+        scale_layout.add_widget(self.scaled_bool_value)
+
+    def __create_single_test_group(self):
+        group = QGroupBox("Single Test")
+        layout = QVBoxLayout(group)
+        self.__single_test_dropmenu = QComboBox()
+        self.__single_test_view_label = QLabel()
+        self.__single_test_button = QPushButton("Classify", self)
+        self.__single_test_result_label = QLabel()
+
+        layout.add_widget(self.__single_test_dropmenu)
+        layout.add_widget(self.__single_test_view_label)
+        layout.add_widget(self.__single_test_button)
+        layout.add_widget(self.__single_test_result_label)
+
+        return group
+
+    def __create_single_test(self):
+        single_test = QGroupBox("Single Test")
+        single_test_layout = QVBoxLayout(single_test)
+        # ------------------------------------------------------------------------------------
+        self.__single_test_dropmenu = QComboBox()
+        self.__single_test_view_label = QLabel()
+        self.__single_test_view_label.style_sheet = 'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }'  # 354A64
+        self.__single_test_view_label.alignment = Qt.AlignCenter
+        self.__single_test_button = QPushButton("Classify", self)
+        self.__single_test_button.clicked.connect(lambda: self.classify_image(self.__single_test_dropmenu.current_index))
+        self.__single_test_result_label = QLabel()
+        single_test_layout.add_widget(self.__single_test_dropmenu)
+        single_test_layout.add_widget(self.__single_test_view_label)
+        single_test_layout.add_widget(self.__single_test_button)
+        return single_test
+
+    def __create_parameters_group(self):
+        group = QGroupBox("KNN parameters")
+        group.set_fixed_height(125)
+        layout = QVBoxLayout(group)
+        layout.add_widget(QParameterPicker(self.__k, self.__max_distance))
+        group.set_layout(layout)
+        return group
+
+    def __about_button(self):
+        button = QPushButton("About", self)
+        button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))  # LE ficher n'existe pas
+        return button
 
 
 
