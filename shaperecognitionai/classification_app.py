@@ -272,7 +272,7 @@ class QClassificationWindow(QMainWindow):
         result_nparray = result_nparray ^ 1
         self.__knn_engine.img_data = (tag, result_nparray)
         extracted_image_data = self.__knn_engine.extract_image_data()
-        # self.add_points(extracted_image_data, False) A REPRENDRE QUAND ON EST PLUS EN VERSION TEST
+        self.add_points(extracted_image_data, False) #A REPRENDRE QUAND ON EST PLUS EN VERSION TEST
         result = self.__knn_engine.calculate_distance()
         self.__single_test_result.text = result
         return result
