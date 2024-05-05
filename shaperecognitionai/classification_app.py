@@ -185,7 +185,7 @@ class QClassificationWindow(QMainWindow):
 
         # Initialisations
         self.update_data_set('ABC')
-        self.global_test()
+        # self.global_test()
         # self.single_test('ABC')
 
     @Slot()

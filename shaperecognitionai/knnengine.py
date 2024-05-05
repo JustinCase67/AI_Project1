@@ -59,7 +59,7 @@ class KNNEngine:
 
     def get_neighbor(self, distances):
         acceptable_distances = distances[distances <= self.__max_distance.current]
-        return np.argsort(acceptable_distances)[:self.__k.current]
+        return np.argsort(acceptable_distances)[:int(self.__k.current)]
 
     def get_tags_index(self, neighbor):
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
@@ -69,6 +69,7 @@ class KNNEngine:
 
     def classify(self, test_image):
         distances = self.assess_data_distance(test_image)
+        print(distances)
         neighbor = self.get_neighbor(distances)
         try:
             tags_index = self.get_tags_index(neighbor)
