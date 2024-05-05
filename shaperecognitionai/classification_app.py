@@ -1,15 +1,14 @@
 import sys
-import numpy as np
+import numpy.typing as npt
 
-from PySide6.QtCore import Qt, Slot, Signal
-from PySide6.QtGui import QScreen, QPixmap, QImage, QColor
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, \
-    QMessageBox
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import QPixmap, QColor
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton,QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
+from util import ImageData
 from db_credential import PostgreSQLCredential
-from klustr_dao import PostgreSQLKlustRDAO
 from scatter_3d_viewer import QScatter3dViewer, QColorSequence
 from klustr_utils import *
 from klustr_dao import *
@@ -79,30 +78,15 @@ class QParameter(QWidget):
 class QClassificationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # valeurs de test
-        self.__current_data_set = None
-        # fin des valeurs de test
+        credential = PostgreSQLCredential(password='AAAaaa123')
+        self.__klustr_dao = PostgreSQLKlustRDAO(credential)
         self.__window_title = "Klustr KNN Classification"
-        self.__window_width = 1024
-        self.__window_height = 768
-        self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
         self.__color_sequence = QColorSequence()
-
-        # Gestion DB
-        credential = PostgreSQLCredential(password='AAAaaa123') #change to AAAaaa123 or something else
-        self.__klustr_dao = PostgreSQLKlustRDAO(credential)
+        self.__current_data_set = None
 
         # Génération du bouton About et du menu
         self.__data = self.__klustr_dao.available_datasets
-        """mylist = [klustr_dao.labels_from_dataset(i[1]) for i in __data]
-        print(mylist)
-
-        mylist2 = [(klustr_dao.image_from_dataset(i[1], False), klustr_dao.image_from_dataset(i[1], True)) for i in __data]
-        print(mylist2)
-
-        mylist2 = [klustr_dao.image_from_label(mylist[i[0]]) for i in __data]
-        print(mylist2)"""
         __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in self.__data]
 
         self.__dataset = QGroupBox("Dataset")
@@ -114,7 +98,6 @@ class QClassificationWindow(QMainWindow):
                 __items[self.__dataset_dropmenu.current_index].split(
                     maxsplit=1)[0]))
         self.__dataset_group_layout = QHBoxLayout(self.__dataset)
-        # a encapsuler mieux
         self.__dataset_group1 = QGroupBox("Included in Data Set")
         self.__dataset_group2 = QGroupBox("Transformation")
         self.__dataset_group_layout.add_widget(self.__dataset_group1)
@@ -160,13 +143,8 @@ class QClassificationWindow(QMainWindow):
         menu_layout.add_widget(self.__single_test)
         menu_layout.add_widget(self.__parameters)
         menu_layout.add_widget(self.about_button)
-        # menu_layout.add_widget(
-        #    QParameterPicker(self.__k, self.__max_distance))
-        # menu_layout.add_widget(self.about_button)
-        # menu_widget = QWidget()
-        # menu_widget.set_layout(menu_layout)
 
-        # Combinaison du menu et du widget viewer
+        # Combinaison du menu et du widget Viewer
         central_widget = QWidget()
         central_layout = QHBoxLayout()
         self.viewer_widget = QScatter3dViewer(parent=central_widget)
@@ -189,7 +167,7 @@ class QClassificationWindow(QMainWindow):
         # self.single_test('ABC')
 
     @Slot()
-    def open_dialog(self, title: str, source: str):
+    def open_dialog(self, title: str, source: str) -> None:
         try:
             with open(source, 'r', encoding='utf-8') as file:
                 content = file.read()
@@ -198,33 +176,33 @@ class QClassificationWindow(QMainWindow):
             print("Le fichier n'existe pas.")
 
     @Slot()
-    def set_thumbnail(self, index):
+    def set_thumbnail(self, index: int) -> None:
         thumbnail = self.__current_data_set[index][6]
         img = qimage_argb32_from_png_decoding(thumbnail)
         self.__single_test_view_label.pixmap = QPixmap.from_image(img)
-        self.__single_test_result.text = "not classified"  # devrait etre ailleurs
+        self.__single_test_result.text = "not classified"
 
     @Slot()
-    def update_data_set(self, dataset_name):
+    def update_data_set(self, dataset_name: str) -> None:
         self.__current_data_set = self.__klustr_dao.image_from_dataset(
             dataset_name, False)
         self.set_training_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
         self.set_thumbnail(self.__single_test_dropmenu.current_index)
 
-    def set_single_test_dropmenu(self, data_set):
+    def set_single_test_dropmenu(self, data_set: list[ImageData]) -> None:
         items = [i[3] for i in data_set]
         self.__single_test_dropmenu.clear()
         self.__single_test_dropmenu.insert_items(0, items)
 
-    def convert_query_to_img_tuple(self, query_result):
+    def convert_query_to_img_tuple(self, query_result: ImageData) -> tuple[str, npt.NDArray]:
         tag = query_result[1]
         result_img = qimage_argb32_from_png_decoding(query_result[6])
         img_nparray = ndarray_from_qimage_argb32(result_img) ^ 1
         return tag, img_nparray
 
     @Slot()
-    def set_training_data(self, dataset_name: str):
+    def set_training_data(self, dataset_name: str) -> None:
         query_result = self.__klustr_dao.image_from_dataset(dataset_name, True)
         self.__knn_engine.training_data = np.zeros([len(query_result), 4])
         for i, result in enumerate(query_result):
@@ -234,18 +212,16 @@ class QClassificationWindow(QMainWindow):
         self.add_points(self.__knn_engine.training_data, True)
         self.set_k_max(len(self.__knn_engine.training_data))
 
-    def set_k_max(self, new_max):
+    def set_k_max(self, new_max: int) -> None:
         self.__knn_engine.k.max = new_max
         params = self.__parameters_picker.find_children(QParameter)
         for p in params:
             if p.parameter_title == self.__knn_engine.k.name:
-                # print('MAX', self.__knn_engine.k.max)
                 p.parameter_scroll_bar.set_range(self.__knn_engine.k.min,
                                                  self.__knn_engine.k.max)
 
     @Slot()
-
-    def classify_image(self, image):
+    def classify_image(self, image: ImageData) -> str:
         raw_img_data = self.convert_query_to_img_tuple(image)
         extracted_img_data = self.__knn_engine.prepare_data(raw_img_data,False)
         self.add_points(extracted_img_data, False)
@@ -253,14 +229,13 @@ class QClassificationWindow(QMainWindow):
         self.__single_test_result.text = result
         return result
 
-    def add_points(self, set_data, is_cloud):
+    def add_points(self, set_data: npt.NDArray, is_cloud: bool) -> None:
         if is_cloud:
             sets = []
             for i in range(len(self.__knn_engine.known_categories)):
                 indices = np.where(set_data[:, 3] == i)[0]
                 valid_rows_view = set_data[indices]
                 sets.append(valid_rows_view)
-                # print("valid_rows index", i, valid_rows_view[:, :-1])
             self.viewer_widget.clear()
             for i in range(len(self.__knn_engine.known_categories)):
                 self.viewer_widget.add_serie(sets[i][:, :-1], self.__color_sequence.next(),
@@ -270,7 +245,10 @@ class QClassificationWindow(QMainWindow):
             self.viewer_widget.remove_serie('unkown shape')
             self.viewer_widget.add_serie(set_data[:-1].reshape(1, -1), QColor("black"), title="unkown shape", size_percent=0.05)
 
-    def single_test(self, dataset_name):
+    """Evaluates and write in a file the classification accuracy of a 
+    specific dataset. In case of failure, the shape's index in the dataset, 
+    the shape name and the misidentified shape name are provided"""
+    def single_test(self, dataset_name) -> None:
         file = open("test_results.txt", "a")
         file.write(dataset_name + "\n")
         compteur = 0
@@ -284,8 +262,12 @@ class QClassificationWindow(QMainWindow):
                 file.write(' wrongfully identified as ' + response + '\n')
         file.write(str(compteur) + ' GOOD OUT OF' + str(
             len(self.__current_data_set)) + '\n')
+        file.close()
 
-    def global_test(self):
+    """Evaluates and write in a file the classification accuracy of all 
+    datasets returned from the database. Gives a success rate for each 
+    dataset and all datasets combined."""
+    def global_test(self) -> None:
         file = open("test_results.txt", "a")
         total_score = []
         for dataset in self.__data:
@@ -311,7 +293,7 @@ class QClassificationWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     window = QClassificationWindow()
-    window.show()
+    window.show_maximized()
     sys.exit(app.exec())
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 
-from util import Util
+from util import Util, ImageType
 from feature_extraction import FeatureExtractor
 
 
@@ -40,7 +40,7 @@ class KNNEngine:
             self.__known_categories.append(tag)
         return self.__known_categories.index(tag)
 
-    def prepare_data(self, raw_data, raw: bool):
+    def prepare_data(self, raw_data: ImageType, raw: bool) -> npt.NDArray:
         extracted_data = np.zeros(4)
         metrics = FeatureExtractor.get_metrics(raw_data[1])
         extracted_data[:len(metrics)] = metrics
@@ -49,7 +49,7 @@ class KNNEngine:
             extracted_data[-1] = tag
         return extracted_data
 
-    def assess_data_distance(self, test_image):
+    def assess_data_distance(self, test_image: npt.NDArray) -> npt.NDArray:
         training_data_metrics = self.__training_data[:, :-1]
         img_metrics = test_image[:-1]
         metrics_distance = np.zeros(len(self.__training_data))
@@ -58,19 +58,18 @@ class KNNEngine:
                                                                        img_metrics)
         return metrics_distance
 
-    def get_neighbor(self, distances):
+    def get_neighbor(self, distances: npt.NDArray) -> npt.NDArray:
         acceptable_distances = distances[distances <= self.__max_distance.current]
         return np.argsort(acceptable_distances)[:int(self.__k.current)]
 
-    def get_tags_index(self, neighbor):
+    def get_tags_index(self, neighbor: npt.NDArray) -> npt.NDArray[np.int64]:
         tags_index = np.zeros(len(neighbor), dtype=np.int64)
         for i, neighb in enumerate(neighbor):
             tags_index[i] = self.__training_data[neighb][-1]
         return tags_index
 
-    def classify(self, test_image):
+    def classify(self, test_image: npt.NDArray) -> str:
         distances = self.assess_data_distance(test_image)
-        print(distances)
         neighbor = self.get_neighbor(distances)
         try:
             tags_index = self.get_tags_index(neighbor)
@@ -90,7 +89,7 @@ class KNNEngine:
         except:
             return "Undefined"
 
-    def tie_breaker(self, metrics, tags, test_image):
+    def tie_breaker(self, metrics: list[npt.NDArray], tags: list[int], test_image: npt.NDArray) -> int:
         unique_tags = list(set(tags))
         unique_tags.sort()
 
