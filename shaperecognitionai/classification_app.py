@@ -244,10 +244,10 @@ class QClassificationWindow(QMainWindow):
                                                  self.__knn_engine.k.max)
 
     @Slot()
+
     def classify_image(self, image):
         raw_img_data = self.convert_query_to_img_tuple(image)
-        extracted_img_data = self.__knn_engine.prepare_data(raw_img_data,
-                                                            False)
+        extracted_img_data = self.__knn_engine.prepare_data(raw_img_data,False)
         self.add_points(extracted_img_data, False)
         result = self.__knn_engine.classify(extracted_img_data)
         self.__single_test_result.text = result

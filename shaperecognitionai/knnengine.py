@@ -7,6 +7,7 @@ from feature_extraction import FeatureExtractor
 
 class KNNEngine:
     def __init__(self):
+
         self.__k = Parameter("K", 1, 10, 1)
         self.__max_distance = Parameter("Max distance", 0, 1, 1, 100.0)
         self.__training_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
@@ -74,27 +75,42 @@ class KNNEngine:
         try:
             tags_index = self.get_tags_index(neighbor)
             unique_values, counts = np.unique(tags_index, return_counts=True)
-            unique_values_same_occurrences = unique_values[
-                counts == counts.max()]
+            unique_values_same_occurrences = unique_values[counts == counts.max()]
             if len(unique_values_same_occurrences) > 1:
-                result = self.tie_breaker(test_image, neighbor,
-                                          unique_values_same_occurrences)
+                metrics = []
+                tags = []
+                for n in neighbor:
+                    if self.training_data[n][-1] in unique_values_same_occurrences:
+                        metrics.append(self.training_data[n][:-1])
+                        tags.append(int(self.training_data[n][-1]))
+                result = self.tie_breaker(metrics, tags, test_image[:-1])
             else:
                 result = unique_values_same_occurrences[0]
             return self.__known_categories[result]
         except:
             return "Undefined"
 
-    def tie_breaker(self, test_image, neighbor, ties):
-        metrics = []
-        tags = []
-        for n in neighbor:
-            if self.__training_data[n][-1] in ties:
-                metrics.append(self.__training_data[n][:-1])
-                tags.append(int(self.__training_data[n][-1]))
-        distances = Util.distance_from_centroid(metrics, tags,
-                                                test_image[:-1])
-        return np.argmin(distances)
+    def tie_breaker(self, metrics, tags, test_image):
+        unique_tags = list(set(tags))
+        unique_tags.sort()
+
+        unique_tags_coordinates = {tag: [] for tag in unique_tags}
+
+        for coordinate, tag in zip(metrics, tags):
+            unique_tags_coordinates[tag].append(coordinate)
+
+        result = [(tag, tuple(coords)) for tag, coords in unique_tags_coordinates.items()]
+        liste_centroid = []
+        liste_distances = []
+
+        for i in range(len(result)):
+            liste_centroid.append(Util.centroid_from_coordinates(result[i][1]))
+        for centroid in liste_centroid:
+            liste_distances.append(Util.euclidean_distance_squared(centroid, test_image))
+
+        np_distances = np.array(liste_distances)
+        index_min_value = np.argmin(np_distances)
+        return result[index_min_value][0]
 
 
 class Parameter:
