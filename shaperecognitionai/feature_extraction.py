@@ -192,10 +192,8 @@ class FeatureExtractor:
         ratio_perimeter_area = FeatureExtractor.complexity(img)
         ratio_area_form_circle = FeatureExtractor.ratio_area(img, max_distance)
         #ratio_distances_min_max = FeatureExtractor.ratio_min_max_distances(max_distance, min_distance)
-
         #ratio_tiny_circle_big_circle = FeatureExtractor.area_of_circle(min_distance) / FeatureExtractor.area_of_circle(max_distance)
         min_pixel_from_point = FeatureExtractor.get_closest_distance_from_point_2d(img, r_centroid_x, r_centroid_y)
-
         ratio_tiny_circle_big_circle = FeatureExtractor.area_of_circle(min_pixel_from_point) / FeatureExtractor.area_of_circle(max_distance)
         return ratio_perimeter_area, ratio_area_form_circle, ratio_tiny_circle_big_circle
 
