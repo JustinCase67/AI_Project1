@@ -98,13 +98,11 @@ class QParameter(QWidget):
 class QClassificationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # valeurs de test
-        self.__k = Parameter("K", 5, 20, 0)
+        self.__k = Parameter("K", 1, 20, 0)
         self.__max_distance = Parameter("Max distance", 0, 100, 0)
         self.__current_data_set = None
         self.__knn_engine = KNNEngine()
         self.__data_info = []
-        # fin des valeurs de test
         self.__gui_maker()
 
     @Slot()
@@ -179,7 +177,6 @@ class QClassificationWindow(QMainWindow):
 
     @Slot()
     def update_labels(self):
-        print("------------------------------------------------------------------")
         self.category_count_value.text = str(self.__data_info[5])
         self.training_count_value.text = str(self.__data_info[6])
         self.test_count_value.text = str(self.__data_info[7])
@@ -192,16 +189,7 @@ class QClassificationWindow(QMainWindow):
         self.set_window_title("Klustr KNN Classification")
         self.resize(1024, 768)
 
-        self.__dataset = QGroupBox("Dataset")
-        self.__dataset_layout = QVBoxLayout(self.__dataset)
-        self.__dataset_dropmenu = self.__get_dropmenu()
-        self.__dataset_group_layout = QHBoxLayout(self.__dataset)
-        self.__dataset_group1 = self.__get_info()
-        self.__dataset_group2 = self.__get_transformation()
-        self.__dataset_group_layout.add_widget(self.__dataset_group1)
-        self.__dataset_group_layout.add_widget(self.__dataset_group2)
-        self.__dataset_layout.add_widget(self.__dataset_dropmenu)
-        self.__dataset_layout.add_layout(self.__dataset_group_layout)
+        self.__dataset = self.__create_dataset_group()
 
         self.__single_test = self.__create_single_test()
 
@@ -209,11 +197,7 @@ class QClassificationWindow(QMainWindow):
 
         self.about_button = self.__about_button()
 
-        menu_layout = QVBoxLayout()
-        menu_layout.add_widget(self.__dataset)
-        menu_layout.add_widget(self.__single_test)
-        menu_layout.add_widget(self.__parameters)
-        menu_layout.add_widget(self.about_button)
+        menu_layout = self.__create_menu(self.__dataset, self.__single_test, self.__parameters, self.about_button)
         central_widget = QWidget()
         central_layout = QHBoxLayout()
         viewer_widget = QScatter3dViewer(parent=central_widget)
@@ -341,20 +325,18 @@ class QClassificationWindow(QMainWindow):
         scale_layout.add_widget(scaled_label)
         scale_layout.add_widget(self.scaled_bool_value)
 
-    def __create_single_test_group(self):
-        group = QGroupBox("Single Test")
-        layout = QVBoxLayout(group)
-        self.__single_test_dropmenu = QComboBox()
-        self.__single_test_view_label = QLabel()
-        self.__single_test_button = QPushButton("Classify", self)
-        self.__single_test_result_label = QLabel()
-
-        layout.add_widget(self.__single_test_dropmenu)
-        layout.add_widget(self.__single_test_view_label)
-        layout.add_widget(self.__single_test_button)
-        layout.add_widget(self.__single_test_result_label)
-
-        return group
+    def __create_dataset_group(self):
+        dataset = QGroupBox("Dataset")
+        dataset_layout = QVBoxLayout(dataset)
+        self.__dataset_dropmenu = self.__get_dropmenu()
+        self.__dataset_group_layout = QHBoxLayout(dataset)
+        dataset_group1 = self.__get_info()
+        dataset_group2 = self.__get_transformation()
+        self.__dataset_group_layout.add_widget(dataset_group1)
+        self.__dataset_group_layout.add_widget(dataset_group2)
+        dataset_layout.add_widget(self.__dataset_dropmenu)
+        dataset_layout.add_layout(self.__dataset_group_layout)
+        return dataset
 
     def __create_single_test(self):
         single_test = QGroupBox("Single Test")
@@ -384,6 +366,15 @@ class QClassificationWindow(QMainWindow):
         button = QPushButton("About", self)
         button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))  # LE ficher n'existe pas
         return button
+
+    def __create_menu(self, widget1, widget2, widget3, widget4):
+        menu = QVBoxLayout()
+        menu.add_widget(widget1)
+        menu.add_widget(widget2)
+        menu.add_widget(widget3)
+        menu.add_widget(widget4)
+        return menu
+
 
 
 
