@@ -6,28 +6,30 @@ Il a été réalisé par :
 - Emeric Thibodeau-Rivard
 - Justin Twarabimenye
 
-Il consiste à faire __quelque_chose__ avec les concepts suivants :
-- __concept_1__knn
-- __concept_n__
+Il consiste à faire application de triage d'images contenant des formes avec les concepts suivants :
+- k voisins les plus proches (knn)
+- programmation par tableaux avec Numpy (array programming)
 
 Nos 3 descripteurs de forme sont :
-- __decripteur_1__ 
- - en __unité__ pour le domaine __domaine__ 
- - correspondant à __courte_description__
+- la complaxité
+ - sans unité Aire / Périmètre^2 pour le domaine [0, 1] (déborde légèrement au dela de 1 à cause de notre approximation du périmètre)
+ - correspondant au ratio entre l'aire et le périmètre au carré, cette valeur x est inversé et normalisé avce la fonction 1 - 4*(pi)*x
 
 - __decripteur_2__ 
- - Aire / Aire
+ - sans unité Aire / Aire
  - correspondant à : Aire de la forme sur l'aire du pseudo-cercle circonscrit fait à partir du rayon du plus grand point extrême. Ce point est trouvé grâce à 4 pointeur parcourant
 l'image binaire et s'arrêtant au premier pixel de l'image. Le premier commençant à l'index 0 et parcourant chaque index pour trouver le point extrême en hauteur de la forme. Le deuxième commence à l'index -1 et parcoure l'image pour trouver le point le plus bas. Les deux autres débutent aux mêmes index mais au lieu de parcourir l'axe 0 ils parcourent l'axe 1 correspondant aux colonnes pour trouver le point le plus à gauche et le point le plus à droite. 
 
 - __decripteur_3__ 
- - Aire / Aire
+ - sans unité Aire / Aire
  - correspondant à : aire du pseudo - cercle inscrit sur l'aire de la forme.
  le rayon du cercle inscrit est trouvé grâce à la création de 8 vues sur l'image à partir du centroïde. Une pour chaque direction cardinale. En premier lieu on trouve les diagonales et les lignes du centroïde sur le np array qui a été flatten au préalable. Par la suite ont applique ces indices pour trouver les vues correspondantes. On applique la même logique pour trouver les lignes. Par la suite, on trouve quel est la distance la plus petite grâce à argmin et un mask. 
 
 Plus précisément, ce laboratoire permet de mettre en pratique les notions de : 
-- __notion_1__
-- __notion_n__
+- tableau à n dimentions (ndarray)
+- vectorisation
+- broadcasting
+- affihage via le systeme d'exploitation avec QT
 
 Un effort d'abstraction a été fait pour ces points : 
 - __point_1__
