@@ -1,1 +1,0 @@
-"C:\Program Files\PostgreSQL\15\bin\pg_restore" --host=localhost --port=5432 --username=postgres --dbname=postgres x:/klustr.dump

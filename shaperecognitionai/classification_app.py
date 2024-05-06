@@ -3,7 +3,8 @@ import numpy.typing as npt
 
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QPixmap, QColor
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton,QMessageBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, \
+    QMessageBox
 from PySide6.QtWidgets import QWidget, QLabel, QScrollBar, QGroupBox, QComboBox
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
@@ -85,7 +86,8 @@ class QClassificationWindow(QMainWindow):
         self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
         self.__color_sequence = QColorSequence()
-        self.__klustr_dao = PostgreSQLKlustRDAO(PostgreSQLCredential(password='AAAaaa123'))
+        self.__klustr_dao = PostgreSQLKlustRDAO(
+            PostgreSQLCredential(password='AAAaaa123'))
         self.__data_info = self.__klustr_dao.available_datasets[0]
 
         self.__gui_maker()
@@ -108,7 +110,7 @@ class QClassificationWindow(QMainWindow):
         thumbnail = self.__current_data_set[index][6]
         img = qimage_argb32_from_png_decoding(thumbnail)
         self.__single_test_view_label.pixmap = QPixmap.from_image(img)
-        #self.__single_test_result.text = "not classified"
+        self.__single_test_result_label.text = "not classified"
 
     @Slot()
     def update_data_set(self, dataset_name: str) -> None:
@@ -117,13 +119,15 @@ class QClassificationWindow(QMainWindow):
         self.set_training_data(dataset_name)
         self.set_single_test_dropmenu(self.__current_data_set)
         self.set_thumbnail(self.__single_test_dropmenu.current_index)
+        self.__single_test_result_label.text = "not classified"
 
     def set_single_test_dropmenu(self, data_set: list[ImageData]) -> None:
         items = [i[3] for i in data_set]
         self.__single_test_dropmenu.clear()
         self.__single_test_dropmenu.insert_items(0, items)
 
-    def convert_query_to_img_tuple(self, query_result: ImageData) -> tuple[str, npt.NDArray]:
+    def convert_query_to_img_tuple(self, query_result: ImageData) -> tuple[
+        str, npt.NDArray]:
         tag = query_result[1]
         result_img = qimage_argb32_from_png_decoding(query_result[6])
         img_nparray = ndarray_from_qimage_argb32(result_img) ^ 1
@@ -151,7 +155,8 @@ class QClassificationWindow(QMainWindow):
     @Slot()
     def classify_image(self, image: ImageData) -> str:
         raw_img_data = self.convert_query_to_img_tuple(image)
-        extracted_img_data = self.__knn_engine.prepare_data(raw_img_data,False)
+        extracted_img_data = self.__knn_engine.prepare_data(raw_img_data,
+                                                            False)
         self.add_points(extracted_img_data, False)
         result = self.__knn_engine.classify(extracted_img_data)
         self.__single_test_result_label.text = result
@@ -166,17 +171,23 @@ class QClassificationWindow(QMainWindow):
                 sets.append(valid_rows_view)
             self.viewer_widget.clear()
             for i in range(len(self.__knn_engine.known_categories)):
-                self.viewer_widget.add_serie(sets[i][:, :-1], self.__color_sequence.next(),
-                                             title=self.__knn_engine.known_categories[i], size_percent=0.05)
+                self.viewer_widget.add_serie(sets[i][:, :-1],
+                                             self.__color_sequence.next(),
+                                             title=
+                                             self.__knn_engine.known_categories[
+                                                 i], size_percent=0.05)
 
         else:
             self.viewer_widget.remove_serie('unkown shape')
-            self.viewer_widget.add_serie(set_data[:-1].reshape(1, -1), QColor("black"), title="unkown shape", size_percent=0.05)
+            self.viewer_widget.add_serie(set_data[:-1].reshape(1, -1),
+                                         QColor("black"), title="unkown shape",
+                                         size_percent=0.05)
 
-    """Evaluates and write in a file the classification accuracy of a 
-    specific dataset. In case of failure, the shape's index in the dataset, 
-    the shape name and the misidentified shape name are provided"""
+
     def single_test(self, dataset_name) -> None:
+        """Evaluates and write in a file the classification accuracy of a
+            specific dataset. In case of failure, the shape's index in the dataset,
+            the shape name and the misidentified shape name are provided"""
         file = open("test_results.txt", "a")
         file.write(dataset_name + "\n")
         compteur = 0
@@ -192,10 +203,10 @@ class QClassificationWindow(QMainWindow):
             len(self.__current_data_set)) + '\n')
         file.close()
 
-    """Evaluates and write in a file the classification accuracy of all 
-    datasets returned from the database. Gives a success rate for each 
-    dataset and all datasets combined."""
     def global_test(self) -> None:
+        """Evaluates and write in a file the classification accuracy of all
+            datasets returned from the database. Gives a success rate for each
+            dataset and all datasets combined."""
         file = open("test_results.txt", "a")
         total_score = []
         for dataset in self.__data:
@@ -216,14 +227,14 @@ class QClassificationWindow(QMainWindow):
             print(str(dataset[1]) + ' DONE')
         file.write('AVERAGE SCORE : ' + str(np.mean(total_score)) + '\n')
         file.close()
-    
+
     @Slot()
     def get_data_info(self, index):
         selected_text = self.__dataset_dropmenu.item_text(index)
         for data in self.__klustr_dao.available_datasets:
             if data[1] in selected_text:
                 self.__data_info = data
-        
+
     @Slot()
     def update_labels(self):
         self.category_count_value.text = str(self.__data_info[5])
@@ -246,7 +257,8 @@ class QClassificationWindow(QMainWindow):
 
         self.about_button = self.__about_button()
 
-        menu_layout = self.__create_menu(self.__dataset, self.__single_test, self.__parameters, self.about_button)
+        menu_layout = self.__create_menu(self.__dataset, self.__single_test,
+                                         self.__parameters, self.about_button)
         central_widget = QWidget()
         central_layout = QHBoxLayout()
         self.viewer_widget = QScatter3dViewer(parent=central_widget)
@@ -254,7 +266,7 @@ class QClassificationWindow(QMainWindow):
         central_layout.add_widget(self.viewer_widget)
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
-        
+
         self.viewer_widget.axis_x.title = "X Axis : A / P^2"
         self.viewer_widget.axis_y.title = "Y Axis : A shape / A pseudo circumscribed circle"
         self.viewer_widget.axis_z.title = "Z Axis : A pseudo inscribed circle / A Shape"
@@ -265,15 +277,14 @@ class QClassificationWindow(QMainWindow):
         self.update_data_set('ABC')
         self.update_labels()
 
-
-
-
     def __get_dropmenu(self):
         __data = self.__klustr_dao.available_datasets
         __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
         dropmenu = QComboBox()
         dropmenu.insert_items(0, __items)
-        dropmenu.activated.connect(lambda: self.update_data_set(__items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[0]))
+        dropmenu.activated.connect(lambda: self.update_data_set(
+            __items[self.__dataset_dropmenu.current_index].split(maxsplit=1)[
+                0]))
         dropmenu.activated.connect(lambda index: self.get_data_info(index))
         dropmenu.activated.connect(lambda: self.update_labels())
         return dropmenu
@@ -281,7 +292,8 @@ class QClassificationWindow(QMainWindow):
     def __get_info(self):
         group = QGroupBox("Included in Data Set")
         group_layout = QVBoxLayout()  # Layout vertical pour le groupe
-        self.__info_layout = QVBoxLayout(group)  # Layout en grille pour aligner les étiquettes et les valeurs
+        self.__info_layout = QVBoxLayout(
+            group)  # Layout en grille pour aligner les étiquettes et les valeurs
         self.__info_category = self.category_widget(self.__info_layout)
         self.__info_training = self.training_widget(self.__info_layout)
         self.__info_test = self.test_widget(self.__info_layout)
@@ -334,7 +346,8 @@ class QClassificationWindow(QMainWindow):
         group = QGroupBox("Transformation")
         group_layout = QVBoxLayout()
         self.__transformation_layout = QVBoxLayout(group)
-        self.__translation = self.translation_widget(self.__transformation_layout)
+        self.__translation = self.translation_widget(
+            self.__transformation_layout)
         self.__rotation = self.rotation_widget(self.__transformation_layout)
         self.__scale = self.scale_widget(self.__transformation_layout)
         group_layout.add_layout(self.__info_layout)
@@ -387,12 +400,16 @@ class QClassificationWindow(QMainWindow):
         single_test = QGroupBox("Single Test")
         single_test_layout = QVBoxLayout(single_test)
         self.__single_test_dropmenu = QComboBox()
-        self.__single_test_dropmenu.activated.connect(lambda: self.set_thumbnail(self.__single_test_dropmenu.current_index))
+        self.__single_test_dropmenu.activated.connect(
+            lambda: self.set_thumbnail(
+                self.__single_test_dropmenu.current_index))
         self.__single_test_view_label = QLabel()
         self.__single_test_view_label.style_sheet = 'QLabel { background-color : #313D4A; padding : 10px 10px 10px 10px; }'  # 354A64
         self.__single_test_view_label.alignment = Qt.AlignCenter
         self.__single_test_button = QPushButton("Classify", self)
-        self.__single_test_button.clicked.connect(lambda: self.classify_image(self.__current_data_set[self.__single_test_dropmenu.current_index]))
+        self.__single_test_button.clicked.connect(lambda: self.classify_image(
+            self.__current_data_set[
+                self.__single_test_dropmenu.current_index]))
         self.__single_test_result_label = QLabel()
         self.__single_test_result_label.text = "not classified"
         self.__single_test_result_label.alignment = Qt.AlignCenter
@@ -406,14 +423,17 @@ class QClassificationWindow(QMainWindow):
         group = QGroupBox("KNN parameters")
         group.set_fixed_height(125)
         layout = QVBoxLayout(group)
-        self.__parameters_picker = QParameterPicker(self.__knn_engine.k,self.__knn_engine.max_distance)
+        self.__parameters_picker = QParameterPicker(self.__knn_engine.k,
+                                                    self.__knn_engine.max_distance)
         layout.add_widget(self.__parameters_picker)
         group.set_layout(layout)
         return group
 
     def __about_button(self):
         button = QPushButton("About", self)
-        button.clicked.connect(lambda: self.open_dialog("About KlustR KNN Classifier", "report.txt"))  # LE ficher n'existe pas
+        button.clicked.connect(
+            lambda: self.open_dialog("About KlustR KNN Classifier",
+                                     "project_report.txt"))
         return button
 
     def __create_menu(self, widget1, widget2, widget3, widget4):
@@ -423,8 +443,6 @@ class QClassificationWindow(QMainWindow):
         menu.add_widget(widget3)
         menu.add_widget(widget4)
         return menu
-
-
 
 
 def main():
