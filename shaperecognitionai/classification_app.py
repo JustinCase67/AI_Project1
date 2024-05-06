@@ -22,13 +22,10 @@ class QParameterPicker(QWidget):
         super().__init__()
         self.__widget_title = QLabel()
         self.__widget_title.text = "Parameters"
-        self.__test = []
 
         self.__central_layout = QVBoxLayout()
-        for _ in parameters:
-            p = QParameter(_)
-            self.__test.append(p)
-            self.__central_layout.add_widget(p)
+        for p in parameters:
+            self.__central_layout.add_widget(QParameter(p))
         self.set_layout(self.__central_layout)
 
 
@@ -153,9 +150,9 @@ class QClassificationWindow(QMainWindow):
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
 
-        self.viewer_widget.axis_x.title = "Axe X : A / P^2"
-        self.viewer_widget.axis_y.title = "Axe Y : A shape / A pseudo circumscribed circle"
-        self.viewer_widget.axis_z.title = "Axe Z : A pseudo inscribed circle / A pseudo circumscribed circle"
+        self.viewer_widget.axis_x.title = "X Axis : A / P^2"
+        self.viewer_widget.axis_y.title = "Y Axis : A shape / A pseudo circumscribed circle"
+        self.viewer_widget.axis_z.title = "Z Axis : A pseudo inscribed circle / A Shape"
         self.viewer_widget.title = "KlustR KNN Classification"
         self.viewer_widget.axis_y.range = (0.0, 1.0)
         self.viewer_widget.axis_x.range = (0.0, 1.0)

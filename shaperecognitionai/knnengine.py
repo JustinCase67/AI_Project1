@@ -10,7 +10,7 @@ class KNNEngine:
 
         self.__k = Parameter("K", 1, 10, 1)
         self.__max_distance = Parameter("Max distance", 0, 1, 1, 100.0)
-        self.__training_data = None  # vide au debut, change apres extract (grosseur *4, on veut le tag qui est le type complexe)
+        self.__training_data = None
         self.__known_categories = []
 
     @property
