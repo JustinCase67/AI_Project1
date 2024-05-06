@@ -1,9 +1,15 @@
+from typing import Tuple
+import numpy.typing as npt
 import numpy as np
+
+ImageData = Tuple[
+    int, str, int, str, int, int, memoryview, memoryview, bool, bool, bool, str]
+ImageType = Tuple[str, npt.NDArray]
 
 
 class Util:
     @staticmethod
-    def centroid_from_coordinates(coordinates):
+    def centroid_from_coordinates(coordinates) -> npt.NDArray | None:
         num_points = len(coordinates)
         if num_points == 0:
             return None
@@ -13,19 +19,7 @@ class Util:
         return centroid
 
     @staticmethod
-    def euclidean_distance_squared(point1, point2):
+    def euclidean_distance_squared(point1: npt.NDArray, point2: npt.NDArray) -> float:
         point1 = np.array(point1)
         point2 = np.array(point2)
         return (np.sum((point1 - point2) ** 2))
-
-    @staticmethod
-    def distance_from_centroid(coordinates_tuple, index_tuples_references_tab,
-                               coordinates_categorie):
-        liste_centroid = []
-        liste_distances = []
-        for form_coordinates in coordinates_tuple:
-            liste_centroid.append(Util.centroid_from_coordinates(form_coordinates))
-        for centroid in liste_centroid:
-            liste_distances.append(
-                Util.euclidean_distance_squared(centroid, coordinates_categorie))
-        return np.array(liste_distances)
