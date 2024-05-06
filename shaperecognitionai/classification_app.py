@@ -85,7 +85,8 @@ class QClassificationWindow(QMainWindow):
         self.resize(self.__window_width, self.__window_height)
         self.__knn_engine = KNNEngine()
         self.__color_sequence = QColorSequence()
-        self.__data_info = []
+        self.__klustr_dao = PostgreSQLKlustRDAO(PostgreSQLCredential(password='AAAaaa123'))
+        self.__data_info = self.__klustr_dao.available_datasets[0]
 
         self.__gui_maker()
 
@@ -254,20 +255,20 @@ class QClassificationWindow(QMainWindow):
         central_widget.set_layout(central_layout)
         self.set_central_widget(central_widget)
         
-        self.viewer_widget.axis_x.title = "Axe X : A / P^2"
-        self.viewer_widget.axis_y.title = "Axe Y : A shape / A pseudo circumscribed circle"
-        self.viewer_widget.axis_z.title = "Axe Z : A pseudo inscribed circle / A pseudo circumscribed circle"
+        self.viewer_widget.axis_x.title = "X Axis : A / P^2"
+        self.viewer_widget.axis_y.title = "Y Axis : A shape / A pseudo circumscribed circle"
+        self.viewer_widget.axis_z.title = "Z Axis : A pseudo inscribed circle / A Shape"
         self.viewer_widget.title = "KlustR KNN Classification"
         self.viewer_widget.axis_y.range = (0.0, 1.0)
         self.viewer_widget.axis_x.range = (0.0, 1.0)
         self.viewer_widget.axis_z.range = (0.0, 1.0)
         self.update_data_set('ABC')
+        self.update_labels()
+
 
 
 
     def __get_dropmenu(self):
-        credential = PostgreSQLCredential(password='Ravens522!')
-        self.__klustr_dao = PostgreSQLKlustRDAO(credential)
         __data = self.__klustr_dao.available_datasets
         __items = [f"{i[1]} [{i[5]}] [{i[8]}]" for i in __data]
         dropmenu = QComboBox()
